@@ -15,6 +15,14 @@ for (i, newf) in enumerate(files):
     os.rename(files[i], newf)
     files[i] = newf
 
+    # strip out git's version at the bottom
+    with open(newf, "r") as f:
+        d = f.read()
+        pass
+    d = d.replace(d[d.index("\n-- \n"):], "\n")
+    with open(newf, "w") as f:
+        f.write(d)
+        pass
     pass
 
 for (i, newf) in enumerate(files):
