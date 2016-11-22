@@ -1,4 +1,5 @@
 * rpm-git-tree
+
 Tooling for developing RPM packages from an external git tree
 
 Basically, I like the way Debian packages are handled.  This brings me closer
@@ -10,3 +11,7 @@ git tag for the appropriate release.  Then I can use all the git tooling
 
 More features as annoyance warrants.  Pull requests welcome; please limit
 languages to Python and Rust (e.g., no shell scripts).
+
+** cleanup_mail.py
+
+Pulls out mail from a mailto: link on a webpage.
