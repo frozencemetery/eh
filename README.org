@@ -15,3 +15,7 @@ languages to Python and Rust (e.g., no shell scripts).
 ** cleanup_mail.py
 
 Pulls out mail from a mailto: link on a webpage.
+
+** make_patches.py
+
+From a git repository, generate the patches section(s) of a spec file.
