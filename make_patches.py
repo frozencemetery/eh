@@ -4,6 +4,10 @@ import os
 import subprocess
 import sys
 
+def usage():
+    print("Usage: %s packagedir basetag [-p#]")
+    exit(1)
+
 def run(cmd, stderr=None, fail=False):
     # I don't want to think about globbing
     res = ""
@@ -29,14 +33,24 @@ argv = sys.argv
 argc = len(sys.argv)
 
 if argc < 3:
-    print("Usage: %s packagedir basetag")
-    exit(1)
+    usage()
+    pass
 
 packagedir = argv[1]
 test("ls " + packagedir + "/.git", "package repo does not exist!")
 
 basetag = argv[2]
 test("git log " + basetag + ".." + basetag, "problem with upstream repo!")
+
+prefix = 1
+if argc > 3:
+    if argv[3].startswith("-p"):
+        prefix = int(argv[3][2:])
+        pass
+    else:
+        usage()
+        pass
+    pass
 
 print("Everything looks okay; let's go...")
 
@@ -75,8 +89,8 @@ print("")
 
 # not necessary in all configurations, but leaving it in anyway
 for (i, newf) in enumerate(files):
-    print("%%patch%d -p1 -b .%s" % \
-          (i + 1, files[i][:-len(".patch")].replace(" ", "-")))
+    print("%%patch%d -p%d -b .%s" % \
+          (i + 1, prefix, files[i][:-len(".patch")].replace(" ", "-")))
     pass
 
 print("Moving patches...")
