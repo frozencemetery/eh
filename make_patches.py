@@ -4,9 +4,7 @@ import os
 import subprocess
 import sys
 
-def usage():
-    print("Usage: %s packagedir basetag [-p#]")
-    exit(1)
+argv = sys.argv
 
 def run(cmd, stderr=None, fail=False):
     # I don't want to think about globbing
@@ -29,10 +27,23 @@ def test(cmd, s):
         exit(1)
     return
 
-argv = sys.argv
-argc = len(sys.argv)
+def usage():
+    print("Usage: %s [-p#] packagedir basetag" % argv[0])
+    exit(1)
 
-if argc < 3:
+prefix = 1
+while len(argv) > 3 and argv[1].startswith("-"):
+    if argv[1].startswith("-p"):
+        prefix = int(argv[1][2:])
+        pass
+    else:
+        usage()
+        pass
+
+    del(argv[1])
+    pass
+
+if len(argv) < 3:
     usage()
     pass
 
@@ -41,16 +52,6 @@ test("ls " + packagedir + "/.git", "package repo does not exist!")
 
 basetag = argv[2]
 test("git log " + basetag + ".." + basetag, "problem with upstream repo!")
-
-prefix = 1
-if argc > 3:
-    if argv[3].startswith("-p"):
-        prefix = int(argv[3][2:])
-        pass
-    else:
-        usage()
-        pass
-    pass
 
 print("Everything looks okay; let's go...")
 
