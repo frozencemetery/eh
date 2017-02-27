@@ -56,7 +56,9 @@ class Spec:
             endind = self.data.index(patches[-1]) + len(patches[-1])
             self._patches = self.data[startind:endind]
             pass
-        self.patches = patches
+        plist = [re.search("^Patch(\d+):\s*(.*)$", p).groups()
+                 for p in patches]
+        self.patches = { int(k): v for (k, v) in plist }
 
         # %prep extraction is important for patching
         self._preamble, _, rest = self.data.partition("%description\n")
@@ -89,8 +91,14 @@ class Spec:
                                       "%build\n%s" % self.build)
         self._build = self.build
 
-        self.data = self.data.replace(self._patches, "\n".join(self.patches))
-        self._patches = "\n".join(self.patches)
+        new_patches = ""
+        keys = self.patches.keys()
+        keys.sort() # this being inplace-only is terrible
+        for k in keys:
+            new_patches += "Patch%d: %s" % (k, keys[k])
+            pass
+        self.data = self.data.replace(self._patches, new_patches)
+        self._patches = new_patches
 
         with open(self.path, "w") as f:
             f.write(self.data)
