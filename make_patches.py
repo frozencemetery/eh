@@ -1,8 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/python2
 
+import glob
 import os
 import subprocess
 import sys
+
+from spec_parse import Spec
 
 argv = sys.argv
 
@@ -49,12 +52,14 @@ if len(argv) < 3:
 
 packagedir = argv[1]
 test("ls " + packagedir + "/.git", "package repo does not exist!")
+test("ls " + packagedir + "/*.spec", "spec file not found!")
 
 basetag = argv[2]
 test("git log " + basetag + ".." + basetag, "problem with upstream repo!")
 
 print("Everything looks okay; let's go...")
 
+run("rm -f *.patch", fail=True)
 run("git format-patch -N %s.." % basetag)
 
 print("Patches produced correctly...")
@@ -63,8 +68,9 @@ files = [f for f in os.listdir(".") if f.endswith(".patch")]
 files.sort() # because git auto-numbers them for us
 
 for (i, newf) in enumerate(files):
-    if files[i].endswith(".patch.patch"):
-        newf = files[i][:-len(".patch")]
+    newf = files[i]
+    if newf.endswith(".patch.patch"):
+        newf = newf[:-len(".patch")]
         pass
 
     # remove git's initial numbering now that order is set
@@ -82,16 +88,45 @@ for (i, newf) in enumerate(files):
         pass
     pass
 
-for (i, newf) in enumerate(files):
-    print("Patch%d: %s" % (i + 1, newf))
+# heavy machinery
+s = Spec(glob.glob(packagedir + "/*.spec")[0])
+new_patches = []
+for (k, v) in s.patches:
+    if v in files:
+        new_patches.append((k, v))
+        pass
     pass
+
+nextind = 0
+for f in files:
+    e = [k for (k, v) in new_patches if v == f]
+    if len(e) > 0:
+        if e[0] < nextind:
+            nextind = -1
+            break
+
+        nextind = e[0] + 1
+        continue
+
+    new_patches.append((nextind, f))
+    nextind += 1
+    pass
+
+if nextind == -1:
+    print("Warning: Failed to preserve existing numbering!")
+    new_patches = list(enumerate(files))
+    pass
+
+s.patches = new_patches
+
+s.sync_to_file()
 
 print("")
 
-# not necessary in all configurations, but leaving it in anyway
-for (i, newf) in enumerate(files):
+print("In case you don't have %autosetup:")
+for (i, newf) in new_patches:
     print("%%patch%d -p%d -b .%s" % \
-          (i + 1, prefix, files[i][:-len(".patch")].replace(" ", "-")))
+          (i, prefix, newf[:-len(".patch")].replace(" ", "-")))
     pass
 
 print("Moving patches...")

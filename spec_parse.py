@@ -58,7 +58,8 @@ class Spec:
             pass
         plist = [re.search("^Patch(\d+):\s*(.*)$", p).groups()
                  for p in patches]
-        self.patches = { int(k): v for (k, v) in plist }
+        self.patches = [(int(k), v) for (k, v) in plist]
+        self.patches.sort()
 
         # %prep extraction is important for patching
         self._preamble, _, rest = self.data.partition("%description\n")
@@ -75,29 +76,28 @@ class Spec:
 
     # Will not delete any fields.
     def sync_to_file(self):
-        self.data = self.data.replace("%changelog\n%s" % self._changelog,
-                                      "%changelog\n%s" % self.changelog)
+        self.data = self.data.replace("%changelog\n" + self._changelog,
+                                      "%changelog\n" + self.changelog)
         self._changelog = self.changelog
 
-        self.data = self.data.replace("\nRelease: %s\n" % self._release,
-                                      "\nRelease: %s\n" % self.release)
+        self.data = self.data.replace("\nRelease: \n" + self._release,
+                                      "\nRelease: \n" + self.release)
         self._release = self.release
 
-        self.data = self.data.replace("%prep\n%s" % self._prep,
-                                      "%prep\n%s" % self.prep)
+        self.data = self.data.replace("%prep\n" + self._prep,
+                                      "%prep\n" + self.prep)
         self._prep = self.prep
 
-        self.data = self.data.replace("%build\n%s" % self._build,
-                                      "%build\n%s" % self.build)
+        self.data = self.data.replace("%build\n" + self._build,
+                                      "%build\n" + self.build)
         self._build = self.build
 
         new_patches = ""
-        keys = self.patches.keys()
-        keys.sort() # this being inplace-only is terrible
-        for k in keys:
-            new_patches += "Patch%d: %s" % (k, keys[k])
+        self.patches.sort()
+        for (k, v) in self.patches:
+            new_patches += "Patch%d: %s\n" % (k, v)
             pass
-        self.data = self.data.replace(self._patches, new_patches)
+        self.data = self.data.replace(self._patches + "\n", new_patches)
         self._patches = new_patches
 
         with open(self.path, "w") as f:
