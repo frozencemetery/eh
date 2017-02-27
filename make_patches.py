@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 from spec_parse import Spec
 
@@ -120,8 +121,17 @@ if nextind == -1:
 
 s.patches = new_patches
 
-relnum = int(re.match("Release:\s(\d+)", s.release).group(1))
+relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
 s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
+
+version = re.match("Version:\s+(.*)", s.version).group(1)
+use_sep = "> - " in s.changelog[:80] # check first line
+sep = " -" if use_sep else ""
+d = time.strftime("%a %b %d %Y")
+new_log = "* %s %s %s%s-%s\n- TODO edit me\n\n" % \
+          (d, "Robbie Harwood <rharwood@redhat.com>",
+           sep, version, relnum+1)
+s.changelog = new_log + s.changelog
 
 s.sync_to_file()
 

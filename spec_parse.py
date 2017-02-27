@@ -23,6 +23,8 @@ import re
 #  - release
 #  - prep
 #  - build
+#  - patches (not synced with prep)
+#  - version
 class Spec:
     def __init__(self, path):
         self.path = path
@@ -48,6 +50,7 @@ class Spec:
         # tosses out all descriptions and stuff
         rest, _, _ = rest.rpartition("%description")
         self._release = re.search("\n(Release:\s*.*)\n", rest).group(1)
+        self._version = re.search("\n(Version:\s*.*)\n", rest).group(1)
 
         # keep track of numbering and such here
         patches = re.findall("Patch\d+:\s*[a-zA-Z0-9_.-]+", rest)
@@ -72,6 +75,7 @@ class Spec:
         self.release = self._release
         self.prep = self._prep
         self.build = self._build
+        self.version = self._version
         return
 
     # Will not delete any fields.
@@ -91,6 +95,10 @@ class Spec:
         self.data = self.data.replace("%build\n" + self._build,
                                       "%build\n" + self.build)
         self._build = self.build
+
+        self.data = self.data.replace("\n" + self._version + "\n",
+                                      "\n" + self.version + "\n")
+        self._version = self.version
 
         new_patches = ""
         self.patches.sort()
