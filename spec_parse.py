@@ -80,8 +80,8 @@ class Spec:
                                       "%changelog\n" + self.changelog)
         self._changelog = self.changelog
 
-        self.data = self.data.replace("\nRelease: \n" + self._release,
-                                      "\nRelease: \n" + self.release)
+        self.data = self.data.replace("\n" + self._release + "\n",
+                                      "\n" + self.release + "\n")
         self._release = self.release
 
         self.data = self.data.replace("%prep\n" + self._prep,

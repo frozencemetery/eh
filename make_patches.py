@@ -2,6 +2,7 @@
 
 import glob
 import os
+import re
 import subprocess
 import sys
 
@@ -118,6 +119,9 @@ if nextind == -1:
     pass
 
 s.patches = new_patches
+
+relnum = int(re.match("Release:\s(\d+)", s.release).group(1))
+s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
 
 s.sync_to_file()
 
