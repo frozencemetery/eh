@@ -1,15 +1,15 @@
 #!/bin/sh -xe
 
-mount --bind /proc /home/bos/rharwood/fedora/proc
-mount --bind /sys /home/bos/rharwood/fedora/sys
-mount --bind /dev /home/bos/rharwood/fedora/dev
-mount --bind /dev/shm /home/bos/rharwood/fedora/dev/shm
-mount --bind /dev/pts /home/bos/rharwood/fedora/dev/pts
+mount --bind /proc ~/fedora/proc
+mount --bind /sys ~/fedora/sys
+mount --bind /dev ~/fedora/dev
+mount --bind /dev/shm ~/fedora/dev/shm
+mount --bind /dev/pts ~/fedora/dev/pts
 
-chroot /home/bos/rharwood/fedora/ || true
+chroot ~/fedora/ || true
 
-umount /home/bos/rharwood/fedora/dev/pts
-umount /home/bos/rharwood/fedora/dev/shm
-umount /home/bos/rharwood/fedora/dev
-umount /home/bos/rharwood/fedora/sys
-umount /home/bos/rharwood/fedora/proc
+umount ~/fedora/dev/pts
+umount ~/fedora/dev/shm
+umount ~/fedora/dev
+umount ~/fedora/sys
+umount ~/fedora/proc

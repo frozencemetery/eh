@@ -1,16 +1,13 @@
 * rpm-git-tree
 
-Tooling for developing RPM packages from an external git tree
+Tooling for developing RPM packages from a release branch
 
-Basically, I like the way Debian packages are handled.  This brings me closer
-to that, while adding more git integration.
+Essentially, I've a branch in my local fork that's based off upstream's git
+tag for the appropriate release.  Then I can use all the version control
+tooling (rebase especially) to carry distro changes.
 
-Essentially, I've got a branch in my local fork that's based off upstream's
-git tag for the appropriate release.  Then I can use all the git tooling
-(rebase especially) to carry distro changes.
-
-More features as annoyance warrants.  Pull requests welcome; please limit
-languages to Python and Rust (e.g., no shell scripts).
+More features as annoyance warrants.  Pull requests welcome; Rust is
+preferred, but shell is okay for simple things, and Python is okay too.
 
 ** cleanup_mail.py
 
