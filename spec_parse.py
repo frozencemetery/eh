@@ -37,7 +37,11 @@ class Spec:
 
         # tosses out everything after %install / %check
         rest, _, _ = rest.rpartition("%install\n")
-        rest, _, _ = rest.rpartition("%check\n")
+        rest, _, whoops = rest.rpartition("%check\n")
+        if rest == "":
+            # no %check section
+            rest = whoops
+            pass
         rest, _, self._build = rest.rpartition("%build\n")
         rest, _, self._prep = rest.rpartition("%prep\n")
 
