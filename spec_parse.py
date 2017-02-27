@@ -47,20 +47,24 @@ class Spec:
 
         # tosses out all descriptions and stuff
         rest, _, _ = rest.rpartition("%description")
-        self._release = re.search("\nRelease: (.*)\n", rest).group(1)
+        self._release = re.search("\n(Release:\s*.*)\n", rest).group(1)
 
-        # probably keep track of numbering here
-        self._sources = [s.group(1) for s in
-                         re.finditer("^Source\d+: (.*)$", rest, re.MULTILINE)]
-        self._patches = [p.group(1) for p in
-                         re.finditer("^Patch\d+: (.*)$", rest, re.MULTILINE)]
+        # keep track of numbering and such here
+        patches = re.findall("Patch\d+:\s*[a-zA-Z0-9_.-]+", rest)
+        if len(patches) != 0:
+            startind = self.data.index(patches[0])
+            endind = self.data.index(patches[-1]) + len(patches[-1])
+            self._patches = self.data[startind:endind]
+            pass
+        self.patches = patches
 
+        # %prep extraction is important for patching
         self._preamble, _, rest = self.data.partition("%description\n")
         self._pkgdata, _, rest = rest.partition("%prep\n")
         self._prep, _, rest = rest.partition("%build\n")
         self._build, _, rest = rest.partition("\n")
 
-        # export fields we support changes to
+        # export (non-patches) fields we support changes to
         self.changelog = self._changelog
         self.release = self._release
         self.prep = self._prep
@@ -84,6 +88,9 @@ class Spec:
         self.data = self.data.replace("%build\n%s" % self._build,
                                       "%build\n%s" % self.build)
         self._build = self.build
+
+        self.data = self.data.replace(self._patches, "\n".join(self.patches))
+        self._patches = "\n".join(self.patches)
 
         with open(self.path, "w") as f:
             f.write(self.data)
