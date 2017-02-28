@@ -126,7 +126,7 @@ s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
 
 version = re.match("Version:\s+(.*)", s.version).group(1)
 use_sep = "> - " in s.changelog[:80] # check first line
-sep = " -" if use_sep else ""
+sep = "- " if use_sep else ""
 d = time.strftime("%a %b %d %Y")
 new_log = "* %s %s %s%s-%s\n- TODO edit me\n\n" % \
           (d, "Robbie Harwood <rharwood@redhat.com>",
