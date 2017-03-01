@@ -116,7 +116,10 @@ for f in files:
 
 if nextind == -1:
     print("Warning: Failed to preserve existing numbering!")
-    new_patches = list(enumerate(files))
+
+    # Keep backporting clearly easy
+    nextind = max([i for (i, _) in s.patches])
+    new_patches = list(enumerate(files, nextind))
     pass
 
 s.patches = new_patches
