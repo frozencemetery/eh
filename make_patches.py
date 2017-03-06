@@ -136,15 +136,30 @@ new_log = "* %s %s %s%s-%s\n- TODO edit me\n\n" % \
            sep, version, relnum+1)
 s.changelog = new_log + s.changelog
 
+patches = ""
+for (i, newf) in new_patches:
+    patches += "%%patch%d -p%d -b .%s\n" % \
+               (i, prefix, newf[:-len(".patch")].replace(" ", "-"))
+    pass
+
+if "%autosetup" not in s.prep:
+    # TODO(rharwood) patches are assumed to occupy only a single block here
+    # I may never care enough to fix this assumption
+    nopatches = [l for l in s.prep.split("\n") if not l.startswith("%patch")]
+    insind = 0
+    while not nopatches[insind].startswith("%setup"):
+        insind += 1
+        pass
+    nopatches.insert(insind + 1, patches)
+    s.prep = "\n".join(nopatches)
+    pass
+
 s.sync_to_file()
 
 print("")
 
-print("In case you don't have %autosetup:")
-for (i, newf) in new_patches:
-    print("%%patch%d -p%d -b .%s" % \
-          (i, prefix, newf[:-len(".patch")].replace(" ", "-")))
-    pass
+print("In case %autosetup detection fails:")
+print(patches)
 
 print("Moving patches...")
 
