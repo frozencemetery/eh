@@ -59,6 +59,9 @@ class Spec:
             endind = self.data.index(patches[-1]) + len(patches[-1])
             self._patches = self.data[startind:endind]
             pass
+        else:
+            self._patches = None
+            pass
         plist = [re.search("^Patch(\d+):\s*(.*)$", p).groups()
                  for p in patches]
         self.patches = [(int(k), v) for (k, v) in plist]
@@ -105,7 +108,14 @@ class Spec:
         for (k, v) in self.patches:
             new_patches += "Patch%d: %s\n" % (k, v)
             pass
-        self.data = self.data.replace(self._patches + "\n", new_patches)
+        if self._patches:
+            self.data = self.data.replace(self._patches + "\n", new_patches)
+            pass
+        else:
+            # This isn't exactly great
+            print("\nYou need to add the patches section yourself:")
+            print(new_patches)
+            pass
         self._patches = new_patches
 
         with open(self.path, "w") as f:
