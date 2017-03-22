@@ -141,6 +141,7 @@ for (i, newf) in new_patches:
     patches += "%%patch%d -p%d -b .%s\n" % \
                (i, prefix, newf[:-len(".patch")].replace(" ", "-"))
     pass
+patches = patches[:-1]
 
 if "%autosetup" not in s.prep:
     # TODO(rharwood) patches are assumed to occupy only a single block here
