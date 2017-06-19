@@ -127,13 +127,16 @@ s.patches = new_patches
 relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
 s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
 
+print("Enter changelog (C-d when done):")
+msg = sys.stdin.read()
+
 version = re.match("Version:\s+(.*)", s.version).group(1)
 use_sep = "> - " in s.changelog[:80] # check first line
 sep = "- " if use_sep else ""
 d = time.strftime("%a %b %d %Y")
-new_log = "* %s %s %s%s-%s\n- TODO edit me\n\n" % \
+new_log = "* %s %s %s%s-%s\n %s\n" % \
           (d, "Robbie Harwood <rharwood@redhat.com>",
-           sep, version, relnum+1)
+           sep, version, relnum+1, msg)
 s.changelog = new_log + s.changelog
 
 patches = ""
