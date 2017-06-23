@@ -134,7 +134,7 @@ version = re.match("Version:\s+(.*)", s.version).group(1)
 use_sep = "> - " in s.changelog[:80] # check first line
 sep = "- " if use_sep else ""
 d = time.strftime("%a %b %d %Y")
-new_log = "* %s %s %s%s-%s\n %s\n" % \
+new_log = "* %s %s %s%s-%s\n%s\n" % \
           (d, "Robbie Harwood <rharwood@redhat.com>",
            sep, version, relnum+1, msg)
 s.changelog = new_log + s.changelog
