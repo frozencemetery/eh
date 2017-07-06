@@ -1,5 +1,6 @@
 #!/usr/bin/python2
 
+import argparse
 import glob
 import os
 import re
@@ -8,8 +9,6 @@ import sys
 import time
 
 from spec_parse import Spec
-
-argv = sys.argv
 
 def run(cmd, stderr=None, fail=False):
     # I don't want to think about globbing
@@ -32,37 +31,24 @@ def test(cmd, s):
         exit(1)
     return
 
-def usage():
-    print("Usage: %s [-p#] packagedir basetag" % argv[0])
-    exit(1)
+parser = argparse.ArgumentParser(
+    description="Munge a patched git tree into an existing spec file.")
+parser.add_argument("-p", "--prefix", default=1, type=int,
+                    help="prefix level to use with patch(1) (default: 1)")
+parser.add_argument("packagedir", help="location of package git repository")
+parser.add_argument("basetag", help="git tag patches are based on")
+args = parser.parse_args()
 
-prefix = 1
-while len(argv) > 3 and argv[1].startswith("-"):
-    if argv[1].startswith("-p"):
-        prefix = int(argv[1][2:])
-        pass
-    else:
-        usage()
-        pass
+test("ls " + args.packagedir + "/.git", "package repo does not exist!")
+test("ls " + args.packagedir + "/*.spec", "spec file not found!")
 
-    del(argv[1])
-    pass
-
-if len(argv) < 3:
-    usage()
-    pass
-
-packagedir = argv[1]
-test("ls " + packagedir + "/.git", "package repo does not exist!")
-test("ls " + packagedir + "/*.spec", "spec file not found!")
-
-basetag = argv[2]
-test("git log " + basetag + ".." + basetag, "problem with upstream repo!")
+test("git log " + args.basetag + ".." + args.basetag,
+     "problem with upstream repo!")
 
 print("Everything looks okay; let's go...")
 
 run("rm -f *.patch", fail=True)
-run("git format-patch -N %s.." % basetag)
+run("git format-patch -N %s.." % args.basetag)
 
 print("Patches produced correctly...")
 
@@ -91,7 +77,7 @@ for (i, newf) in enumerate(files):
     pass
 
 # heavy machinery
-s = Spec(glob.glob(packagedir + "/*.spec")[0])
+s = Spec(glob.glob(args.packagedir + "/*.spec")[0])
 new_patches = []
 for (k, v) in s.patches:
     if v in files:
@@ -100,26 +86,37 @@ for (k, v) in s.patches:
     pass
 
 nextind = 0
-for f in files:
+while len(files) > 0:
+    f = files[0]
+    del(files[0]) # I'm the best at what I doooooooo
     e = [k for (k, v) in new_patches if v == f]
     if len(e) > 0:
         if e[0] < nextind:
-            nextind = -1
             break
-
         nextind = e[0] + 1
         continue
 
-    new_patches.append((nextind, f))
-    nextind += 1
+    # are we done adding existing files?
+    # set difference - find any in s.patches that are still in files
+    break_again = False
+    for (_, v) in s.patches:
+        if v in files:
+            # existing numbering is toast
+            nextind = max([k for (k, _) in new_patches + s.patches]) + 1
+            # break twice
+            break_again = True
+            break
+        pass
+    if break_again:
+        files.insert(0, f)
+        break
     pass
 
-if nextind == -1:
+if len(files) > 0:
     print("Warning: Failed to preserve existing numbering!")
 
     # Keep backporting clearly easy
-    nextind = max([i for (i, _) in s.patches])
-    new_patches = list(enumerate(files, nextind))
+    new_patches += list(enumerate(files, nextind))
     pass
 
 s.patches = new_patches
@@ -142,7 +139,7 @@ s.changelog = new_log + s.changelog
 patches = ""
 for (i, newf) in new_patches:
     patches += "%%patch%d -p%d -b .%s\n" % \
-               (i, prefix, newf[:-len(".patch")].replace(" ", "-"))
+               (i, args.prefix, newf[:-len(".patch")].replace(" ", "-"))
     pass
 patches = patches[:-1]
 
@@ -169,7 +166,7 @@ print("Moving patches...")
 
 repodir = run("pwd")[:-1] # newlines
 
-os.chdir(packagedir)
+os.chdir(args.packagedir)
 run("git rm -f *.patch", fail=True)
 run("mv " + repodir + "/*.patch .")
 run("git add *.patch")
