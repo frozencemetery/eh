@@ -90,32 +90,24 @@ while len(files) > 0:
     f = files[0]
     del(files[0]) # I'm the best at what I doooooooo
     e = [k for (k, v) in new_patches if v == f]
-    if len(e) > 0:
-        if e[0] < nextind:
+    if len(e) > 0: # patch carried over from old set
+        if e[0] < nextind: # indexing constraint violated
+            files.insert(0, f)
             break
         nextind = e[0] + 1
         continue
 
-    # are we done adding existing files?
-    # set difference - find any in s.patches that are still in files
-    break_again = False
-    for (_, v) in s.patches:
-        if v in files:
-            # existing numbering is toast
-            nextind = max([k for (k, _) in new_patches + s.patches]) + 1
-            # break twice
-            break_again = True
-            break
-        pass
-    if break_again:
-        files.insert(0, f)
-        break
+    # patch is new - set nextind to next smallest unused
+    nextind = 1 + max([k for (k, _) in new_patches])
+    new_patches.append((nextind, f))
+    nextind += 1
     pass
 
 if len(files) > 0:
     print("Warning: Failed to preserve existing numbering!")
 
-    # Keep backporting clearly easy
+    # Keep backporting clearly easy, but keep the common prefix
+    nextind = 1 + max([k for (k, _) in new_patches])
     new_patches += list(enumerate(files, nextind))
     pass
 
