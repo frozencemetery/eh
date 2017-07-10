@@ -158,7 +158,13 @@ print("Moving patches...")
 
 repodir = run("pwd")[:-1] # newlines
 
+branch = run("git branch | grep '^\* '")[2:-1]
+if branch == "rawhide":
+    branch = "master"
+    pass
+
 os.chdir(args.packagedir)
+run("git checkout " + branch)
 run("git rm -f *.patch", fail=True)
 run("mv " + repodir + "/*.patch .")
 run("git add *.patch")
