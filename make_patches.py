@@ -33,7 +33,7 @@ def test(cmd, s):
 
 parser = argparse.ArgumentParser(
     description="Munge a patched git tree into an existing spec file.")
-parser.add_argument("-p", "--prefix", default=1, type=int,
+parser.add_argument("-p", dest="prefix", default=1, type=int,
                     help="prefix level to use with patch(1) (default: 1)")
 parser.add_argument("packagedir", help="location of package git repository")
 parser.add_argument("basetag", help="git tag patches are based on")
