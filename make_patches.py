@@ -35,20 +35,26 @@ parser = argparse.ArgumentParser(
     description="Munge a patched git tree into an existing spec file.")
 parser.add_argument("-p", dest="prefix", default=1, type=int,
                     help="prefix level to use with patch(1) (default: 1)")
+parser.add_argument("-t", dest="tag", default=None,
+                    help="git tag patches are based on (default: ask git)")
 parser.add_argument("packagedir", help="location of package git repository")
-parser.add_argument("basetag", help="git tag patches are based on")
 args = parser.parse_args()
 
 test("ls " + args.packagedir + "/.git", "package repo does not exist!")
 test("ls " + args.packagedir + "/*.spec", "spec file not found!")
 
-test("git log " + args.basetag + ".." + args.basetag,
-     "problem with upstream repo!")
+basetag = args.tag
+if not basetag:
+    basetag = run("git describe --abbrev=0 --tags")[:-1]
+    pass
+
+test("git log " + basetag + ".." + basetag,
+     "problem with upstream repo (tag: %s)!" % basetag)
 
 print("Everything looks okay; let's go...")
 
 run("rm -f *.patch", fail=True)
-run("git format-patch -N %s.." % args.basetag)
+run("git format-patch -N %s.." % basetag)
 
 print("Patches produced correctly...")
 
