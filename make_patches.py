@@ -170,7 +170,12 @@ if branch == "rawhide":
     pass
 
 os.chdir(args.packagedir)
-run("git checkout " + branch)
+
+bchange = run("git checkout " + branch, stderr=subprocess.STDOUT)
+if not bchange.startswith("Already on '"):
+    sys.stderr.write(bchange)
+    pass
+
 run("git rm -f *.patch", fail=True)
 run("mv " + repodir + "/*.patch .")
 run("git add *.patch")
