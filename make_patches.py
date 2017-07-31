@@ -40,7 +40,19 @@ parser.add_argument("-t", dest="tag", default=None,
 parser.add_argument("packagedir", help="location of package git repository")
 args = parser.parse_args()
 
-test("ls " + args.packagedir + "/.git", "package repo does not exist!")
+branch = run("git branch | grep '^\* '")[2:-1]
+if branch == "rawhide":
+    branch = "master"
+    pass
+
+try:
+    run("ls " + args.packagedir + "/.git", stderr=subprocess.STDOUT)
+    pass
+except subprocess.CalledProcessError:
+    args.packagedir += "/" + branch
+    test("ls " + args.packagedir + "/.git", "package repo does not exist!")
+    pass
+
 test("ls " + args.packagedir + "/*.spec", "spec file not found!")
 
 basetag = args.tag
@@ -163,11 +175,6 @@ print(patches)
 print("Moving patches...")
 
 repodir = run("pwd")[:-1] # newlines
-
-branch = run("git branch | grep '^\* '")[2:-1]
-if branch == "rawhide":
-    branch = "master"
-    pass
 
 os.chdir(args.packagedir)
 
