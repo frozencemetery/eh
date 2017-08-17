@@ -37,6 +37,8 @@ parser.add_argument("-p", dest="prefix", default=1, type=int,
                     help="prefix level to use with patch(1) (default: 1)")
 parser.add_argument("-t", dest="tag", default=None,
                     help="git tag patches are based on (default: ask git)")
+parser.add_argument("-u", dest="updateonly", action="store_true",
+                    help="no new version in spec file (default: false)")
 parser.add_argument("packagedir", help="location of package git repository")
 args = parser.parse_args()
 
@@ -65,7 +67,7 @@ test("git log " + basetag + ".." + basetag,
 
 print("Everything looks okay; let's go...")
 
-run("rm -f *.patch", fail=True)
+run("rm -f *.patch", fail=True, stderr=subprocess.STDOUT)
 run("git format-patch -N %s.." % basetag)
 
 print("Patches produced correctly...")
@@ -116,7 +118,9 @@ while len(files) > 0:
         continue
 
     # patch is new - set nextind to next smallest unused
-    nextind = 1 + max([k for (k, _) in new_patches])
+    if len(new_patches) != 0:
+        nextind = 1 + max([k for (k, _) in new_patches])
+        pass
     new_patches.append((nextind, f))
     nextind += 1
     pass
@@ -131,20 +135,22 @@ if len(files) > 0:
 
 s.patches = new_patches
 
-relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
-s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
+if not args.updateonly:
+    relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
+    s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
 
-print("Enter changelog (C-d when done):")
-msg = sys.stdin.read()
+    print("Enter changelog (C-d when done):")
+    msg = sys.stdin.read()
 
-version = re.match("Version:\s+(.*)", s.version).group(1)
-use_sep = "> - " in s.changelog[:80] # check first line
-sep = "- " if use_sep else ""
-d = time.strftime("%a %b %d %Y")
-new_log = "* %s %s %s%s-%s\n%s\n" % \
-          (d, "Robbie Harwood <rharwood@redhat.com>",
-           sep, version, relnum+1, msg)
-s.changelog = new_log + s.changelog
+    version = re.match("Version:\s+(.*)", s.version).group(1)
+    use_sep = "> - " in s.changelog[:80] # check first line
+    sep = "- " if use_sep else ""
+    d = time.strftime("%a %b %d %Y")
+    new_log = "* %s %s %s%s-%s\n%s\n" % \
+              (d, "Robbie Harwood <rharwood@redhat.com>",
+               sep, version, relnum+1, msg)
+    s.changelog = new_log + s.changelog
+    pass
 
 patches = ""
 for (i, newf) in new_patches:
