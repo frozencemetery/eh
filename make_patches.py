@@ -72,68 +72,74 @@ run("git format-patch -N %s.." % basetag)
 
 print("Patches produced correctly...")
 
-files = [f for f in os.listdir(".") if f.endswith(".patch")]
-files.sort() # because git auto-numbers them for us
+incoming_patches = [f for f in os.listdir(".") if f.endswith(".patch")]
+incoming_patches.sort() # because git auto-numbers them for us
 
-for (i, newf) in enumerate(files):
-    newf = files[i]
-    if newf.endswith(".patch.patch"):
-        newf = newf[:-len(".patch")]
+for (i, newp) in enumerate(incoming_patches):
+    newp = incoming_patches[i]
+
+    # legacy, pre-me patches
+    if newp.endswith(".patch.patch"):
+        newp = newp[:-len(".patch")]
         pass
 
     # remove git's initial numbering now that order is set
-    newf = newf[5:]
-    os.rename(files[i], newf)
-    files[i] = newf
+    newp = newp[5:]
+    os.rename(incoming_patches[i], newp)
+    incoming_patches[i] = newp
 
     # strip out git's version at the bottom
-    with open(newf, "r") as f:
+    with open(newp, "r") as f:
         d = f.read()
         pass
     d = d.replace(d[d.index("\n-- \n"):], "\n")
-    with open(newf, "w") as f:
+    with open(newp, "w") as f:
         f.write(d)
         pass
     pass
 
 # heavy machinery
 s = Spec(glob.glob(args.packagedir + "/*.spec")[0])
-new_patches = []
+patches_old = []
 for (k, v) in s.patches:
-    if v in files:
-        new_patches.append((k, v))
+    if v in incoming_patches:
+        patches_old.append((k, v))
         pass
     pass
 
 nextind = 0
-while len(files) > 0:
-    f = files[0]
-    del(files[0]) # I'm the best at what I doooooooo
-    e = [k for (k, v) in new_patches if v == f]
+patches_res = []
+while len(incoming_patches) > 0:
+    p = incoming_patches[0]
+    del(incoming_patches[0]) # I'm the best at what I doooooooo
+
+    e = [(k, v) for (k, v) in patches_old if v == p]
     if len(e) > 0: # patch carried over from old set
-        if e[0] < nextind: # indexing constraint violated
-            files.insert(0, f)
+        if e[0][0] < nextind: # indexing constraint violated
+            incoming_patches.insert(0, p)
             break
-        nextind = e[0] + 1
+
+        patches_res.append(e[0])
+        nextind = e[0][0] + 1
         continue
 
     # patch is new - set nextind to next smallest unused
-    if len(new_patches) != 0:
-        nextind = 1 + max([k for (k, _) in new_patches])
+    if len(patches_old) != 0:
+        nextind = 1 + max([k for (k, _) in patches_res])
         pass
-    new_patches.append((nextind, f))
+    patches_res.append((nextind, p))
     nextind += 1
     pass
 
-if len(files) > 0:
+if len(incoming_patches) > 0:
     print("Warning: Failed to preserve existing numbering!")
 
     # Keep backporting clearly easy, but keep the common prefix
-    nextind = 1 + max([k for (k, _) in new_patches])
-    new_patches += list(enumerate(files, nextind))
+    nextind = 1 + max([k for (k, _) in patches_res])
+    patches_res += list(enumerate(incoming_patches, nextind))
     pass
 
-s.patches = new_patches
+s.patches = patches_res
 
 if not args.updateonly:
     relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
@@ -153,7 +159,7 @@ if not args.updateonly:
     pass
 
 patches = ""
-for (i, newf) in new_patches:
+for (i, newf) in patches_old:
     patches += "%%patch%d -p%d -b .%s\n" % \
                (i, args.prefix, newf[:-len(".patch")].replace(" ", "-"))
     pass
