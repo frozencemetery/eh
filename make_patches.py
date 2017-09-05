@@ -148,15 +148,16 @@ if len(incoming_patches) > 0:
 s.patches = patches_res
 
 if not args.updateonly:
-    relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
+    release = re.match("Release:\s+(\d+)", s.release).group(1)
+    relnum = int(release) + 1
 
     if args.newversion:
-        version = re.match("Version:\s+(.*)$", s.version).group(1)
+        version = re.match("Version:\s+(.*)", s.version).group(1)
         s.version = s.version.replace(version, args.newversion, 1)
-        relnum = 0 # start releases at -1
+        relnum = 1
         pass
 
-    s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
+    s.release = s.release.replace(release, str(relnum), 1)
 
     print("Enter changelog (C-d when done):")
     msg = sys.stdin.read()
@@ -167,7 +168,7 @@ if not args.updateonly:
     d = time.strftime("%a %b %d %Y")
     new_log = "* %s %s %s%s-%s\n%s\n" % \
               (d, "Robbie Harwood <rharwood@redhat.com>",
-               sep, version, relnum+1, msg)
+               sep, version, relnum, msg)
     s.changelog = new_log + s.changelog
     pass
 
