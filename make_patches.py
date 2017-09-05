@@ -39,8 +39,14 @@ parser.add_argument("-t", dest="tag", default=None,
                     help="git tag patches are based on (default: ask git)")
 parser.add_argument("-u", dest="updateonly", action="store_true",
                     help="no new version in spec file (default: false)")
+parser.add_argument("-n", dest="newversion", default=None,
+                    help="bump version to specified version (default: don't)")
 parser.add_argument("packagedir", help="location of package git repository")
 args = parser.parse_args()
+
+if args.updateonly and args.newversion:
+    print("Error: can't specify both new version and updateonly!")
+    exit(1)
 
 branch = run("git branch | grep '^\* '")[2:-1]
 if branch == "rawhide":
@@ -143,6 +149,13 @@ s.patches = patches_res
 
 if not args.updateonly:
     relnum = int(re.match("Release:\s+(\d+)", s.release).group(1))
+
+    if args.newversion:
+        version = re.match("Version:\s+(.*)$", s.version).group(1)
+        s.version = s.version.replace(version, args.newversion, 1)
+        relnum = 0 # start releases at -1
+        pass
+
     s.release = s.release.replace(str(relnum), str(relnum + 1), 1)
 
     print("Enter changelog (C-d when done):")
