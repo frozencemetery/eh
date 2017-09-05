@@ -172,7 +172,7 @@ if not args.updateonly:
     pass
 
 patches = ""
-for (i, newf) in patches_old:
+for (i, newf) in patches_res:
     patches += "%%patch%d -p%d -b .%s\n" % \
                (i, args.prefix, newf[:-len(".patch")].replace(" ", "-"))
     pass
