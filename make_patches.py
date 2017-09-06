@@ -41,7 +41,8 @@ parser.add_argument("-u", dest="updateonly", action="store_true",
                     help="no new version in spec file (default: false)")
 parser.add_argument("-n", dest="newversion", default=None,
                     help="bump version to specified version (default: don't)")
-parser.add_argument("packagedir", help="location of package git repository")
+parser.add_argument("-d", dest="packagedir", default=None,
+                    help="package repository dir (default: from branch)")
 args = parser.parse_args()
 
 if args.updateonly and args.newversion:
@@ -51,6 +52,24 @@ if args.updateonly and args.newversion:
 branch = run("git branch | grep '^\* '")[2:-1]
 if branch == "rawhide":
     branch = "master"
+    pass
+
+if not args.packagedir:
+    top = run("git rev-parse --show-toplevel")[:-1]
+    cwd = os.getcwd().split(os.sep)
+    while cwd[-1] in ["rawhide", branch]:
+        del(cwd[-1])
+        pass
+    cwd = cwd[-1].split(".")[0]
+
+    if "rhel" in branch:
+        cwd += ".rhel"
+        pass
+    else:
+        cwd += ".fedora"
+        pass
+
+    args.packagedir = os.sep.join([os.getenv("HOME"), cwd])
     pass
 
 try:
