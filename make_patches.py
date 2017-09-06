@@ -36,7 +36,12 @@ def verify(args):
         print("Error: can't specify both new version and updateonly!")
         exit(1)
 
-    args.branch = run("git branch | grep '^\* '")[2:-1]
+    if args.branch:
+        run("git checkout " + args.branch, stderr=subprocess.STDOUT)
+        pass
+    else:
+        args.branch = run("git branch | grep '^\* '")[2:-1]
+        pass
     if args.branch == "rawhide":
         args.branch = "master"
         pass
@@ -219,6 +224,8 @@ if __name__ == "__main__":
         description="Munge a patched git tree into an existing spec file.")
     parser.add_argument("-p", dest="prefix", default=1, type=int,
                         help="prefix level to use with patch(1) (default: 1)")
+    parser.add_argument("-b", dest="branch", default=None,
+                        help="branch to work from (default: current)")
     parser.add_argument("-t", dest="tag", default=None,
                         help="git tag to base patches on (default: ask git)")
     parser.add_argument("-u", dest="updateonly", action="store_true",
