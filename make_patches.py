@@ -1,5 +1,7 @@
 #!/usr/bin/python2
 
+from __future__ import print_function
+
 import argparse
 import glob
 import os
@@ -27,7 +29,7 @@ def test(cmd, s):
     try:
         run(cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError:
-        print(s)
+        log(s)
         exit(1)
     return
 
@@ -66,6 +68,14 @@ def verify(args):
             pass
 
         args.packagedir = os.sep.join([os.getenv("HOME"), cwd])
+        pass
+
+    global log
+    if args.verbose:
+        log = lambda s: print(s)
+        pass
+    else:
+        log = lambda s: None
         pass
 
     try:
@@ -148,7 +158,7 @@ def apply_patches(s, incoming_patches):
         pass
 
     if len(incoming_patches) > 0:
-        print("Warning: Failed to preserve existing numbering!")
+        log("Warning: Failed to preserve existing numbering!")
 
         # Keep backporting clearly easy, but keep the common prefix
         nextind = 1 + max([k for (k, _) in patches_res])
@@ -170,7 +180,7 @@ def bookkeep(s, args):
 
     s.release = s.release.replace(release, str(relnum), 1)
 
-    print("Enter changelog (C-d when done):")
+    log("Enter changelog (C-d when done):")
     msg = sys.stdin.read()
 
     version = re.match("Version:\s+(.*)", s.version).group(1)
@@ -234,39 +244,41 @@ if __name__ == "__main__":
                         help="bump version specified (default: don't)")
     parser.add_argument("-d", dest="packagedir", default=None,
                         help="package repository dir (default: from branch)")
+    parser.add_argument("-v", dest="verbose", action="store_true",
+                        help="increase verbosity (default: be quiet)")
     args = parser.parse_args()
     args = verify(args)
-    print("Everything looks okay; let's go...")
+    log("Everything looks okay; let's go...")
 
     incoming_patches = produce_patches(args)
-    print("Patches produced correctly...")
+    log("Patches produced correctly...")
 
     s = Spec(glob.glob(args.packagedir + "/*.spec")[0])
-    print("Spec file parsed...")
+    log("Spec file parsed...")
 
     patches_res = apply_patches(s, incoming_patches)
-    print("New patches applied...")
+    log("New patches applied...")
 
     if not args.updateonly:
         bookkeep(s, args)
-        print("Kept books...")
+        log("Kept books...")
         pass
 
     patches = generate_patch_section(patches_res)
     if "%autosetup" not in s.prep:
         handle_autosetup(s, patches)
-        print("Synced autosetup data...")
+        log("Synced autosetup data...")
         pass
-    print("In case %autosetup detection fails:")
-    print("")
-    print(patches)
-    print("")
+    log("In case %autosetup detection fails:")
+    log("")
+    log(patches)
+    log("")
 
     s.sync_to_file()
-    print("Wrote out spec file!")
+    log("Wrote out spec file!")
 
-    print("Moving patches...")
+    log("Moving patches...")
     move_patches(args)
 
-    print("Done!")
+    log("Done!")
     exit(0)
