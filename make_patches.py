@@ -180,7 +180,7 @@ def bookkeep(s, args):
 
     s.release = s.release.replace(release, str(relnum), 1)
 
-    log("Enter changelog (C-d when done):")
+    print("Enter changelog (C-d when done):")
     msg = sys.stdin.read()
 
     version = re.match("Version:\s+(.*)", s.version).group(1)
