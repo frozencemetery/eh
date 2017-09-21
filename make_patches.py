@@ -232,18 +232,18 @@ def move_patches(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Munge a patched git tree into an existing spec file.")
-    parser.add_argument("-p", dest="prefix", default=1, type=int,
-                        help="prefix level to use with patch(1) (default: 1)")
     parser.add_argument("-b", dest="branch", default=None,
                         help="branch to work from (default: current)")
+    parser.add_argument("-d", dest="packagedir", default=None,
+                        help="package repository dir (default: from branch)")
+    parser.add_argument("-n", dest="newversion", default=None,
+                        help="bump version specified (default: don't)")
+    parser.add_argument("-p", dest="prefix", default=1, type=int,
+                        help="prefix level to use with patch(1) (default: 1)")
     parser.add_argument("-t", dest="tag", default=None,
                         help="git tag to base patches on (default: ask git)")
     parser.add_argument("-u", dest="updateonly", action="store_true",
                         help="no new version in spec file (default: false)")
-    parser.add_argument("-n", dest="newversion", default=None,
-                        help="bump version specified (default: don't)")
-    parser.add_argument("-d", dest="packagedir", default=None,
-                        help="package repository dir (default: from branch)")
     parser.add_argument("-v", dest="verbose", action="store_true",
                         help="increase verbosity (default: be quiet)")
     args = parser.parse_args()
