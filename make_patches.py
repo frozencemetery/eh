@@ -191,7 +191,7 @@ def bookkeep(s, args):
               (d, "Robbie Harwood <rharwood@redhat.com>",
                sep, version, relnum, msg)
     s.changelog = new_log + s.changelog
-    return
+    return msg
 
 def handle_autosetup(s, patches):
     # TODO(rharwood) patches are assumed to occupy only a single block here
@@ -229,6 +229,16 @@ def move_patches(args):
     run("git add *.patch")
     return
 
+def commit(args, cl_entry):
+    cl_entry = cl_entry[2:] # remove "- " from first line
+    cl_entry = cl_entry.replace("\n", "\n\n", 1) # space out the body
+    while cl_entry[-1] == '\n':
+        cl_entry = cl_entry[:-1]
+        pass
+
+    run("git commit -am '%s'" % cl_entry)
+    return
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Munge a patched git tree into an existing spec file.")
@@ -238,6 +248,8 @@ if __name__ == "__main__":
                         help="package repository dir (default: from branch)")
     parser.add_argument("-n", dest="newversion", default=None,
                         help="bump version specified (default: don't)")
+    parser.add_argument("-N", dest="nocommit", action="store_true",
+                        help="leave changes uncommitted (default: commit)")
     parser.add_argument("-p", dest="prefix", default=1, type=int,
                         help="prefix level to use with patch(1) (default: 1)")
     parser.add_argument("-t", dest="tag", default=None,
@@ -260,7 +272,7 @@ if __name__ == "__main__":
     log("New patches applied...")
 
     if not args.updateonly:
-        bookkeep(s, args)
+        cl_entry = bookkeep(s, args)
         log("Kept books...")
         pass
 
@@ -279,6 +291,11 @@ if __name__ == "__main__":
 
     log("Moving patches...")
     move_patches(args)
+
+    if not args.nocommit:
+        log("Committing changes...")
+        commit(args, cl_entry)
+        pass
 
     log("Done!")
     exit(0)
