@@ -232,6 +232,7 @@ def move_patches(args):
 def commit(args, cl_entry):
     cl_entry = cl_entry[2:] # remove "- " from first line
     cl_entry = cl_entry.replace("\n", "\n\n", 1) # space out the body
+    cl_entry = cl_entry.replace("\n- ", "\n")
     while cl_entry[-1] == '\n':
         cl_entry = cl_entry[:-1]
         pass
