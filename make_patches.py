@@ -10,6 +10,8 @@ import subprocess
 import sys
 import time
 
+from git import Repo
+
 from spec_parse import Spec
 
 def run(cmd, stderr=None, fail=False):
@@ -38,23 +40,26 @@ def verify(args):
         print("Error: can't specify both new version and updateonly!")
         exit(1)
 
+    r = Repo(".")
+    args.srcrepo = r
+
     if args.branch:
-        run("git checkout " + args.branch, stderr=subprocess.STDOUT)
+        r.heads[args.branch].checkout()
         pass
     else:
-        args.branch = run("git branch | grep '^\* '")[2:-1]
+        args.branch = str(r.active_branch)
         pass
     if args.branch == "rawhide":
         args.branch = "master"
         pass
 
     if not args.tag:
-        args.tag = run("git describe --abbrev=0 --tags")[:-1]
+        args.tag = r.git.describe("--abbrev=0", "--tags")
         pass
+    r.tags[args.tag] # check it exists
 
     if not args.packagedir:
-        top = run("git rev-parse --show-toplevel")[:-1]
-        cwd = os.getcwd().split(os.sep)
+        cwd = r.working_dir.split(os.sep)
         while cwd[-1] in ["rawhide", args.branch]:
             del(cwd[-1])
             pass
@@ -67,8 +72,11 @@ def verify(args):
             cwd += ".fedora"
             pass
 
-        args.packagedir = os.sep.join([os.getenv("HOME"), cwd])
+        args.packagedir = os.sep.join([os.getenv("HOME"), cwd, args.branch])
         pass
+    args.packagerepo = Repo(args.packagedir)
+
+    test("ls " + args.packagedir + "/*.spec", "spec file not found!")
 
     global log
     if args.verbose:
@@ -78,25 +86,12 @@ def verify(args):
         log = lambda s: None
         pass
 
-    try:
-        run("ls " + args.packagedir + "/.git", stderr=subprocess.STDOUT)
-        pass
-    except subprocess.CalledProcessError:
-        args.packagedir += "/" + args.branch
-        test("ls " + args.packagedir + "/.git",
-             "package repo %s does not exist!" % args.packagedir)
-        pass
-
-    test("ls " + args.packagedir + "/*.spec", "spec file not found!")
-
-    test("git log " + args.tag + ".." + args.tag,
-         "problem with upstream repo (tag: %s)!" % args.tag)
-
     return args
 
 def produce_patches(args):
+    os.chdir(args.srcrepo.working_dir)
     run("rm -f *.patch", fail=True, stderr=subprocess.STDOUT)
-    run("git format-patch -N %s.." % args.tag)
+    args.srcrepo.git.format_patch("-N", args.tag + "..")
 
     incoming_patches = [f for f in os.listdir(".") if f.endswith(".patch")]
     incoming_patches.sort() # because git auto-numbers them for us
@@ -216,17 +211,14 @@ def generate_patch_section(patches_res):
 
 def move_patches(args):
     repodir = os.getcwd()
-
     os.chdir(args.packagedir)
 
-    bchange = run("git checkout " + args.branch, stderr=subprocess.STDOUT)
-    if not bchange.startswith("Already on '"):
-        sys.stderr.write(bchange)
-        pass
+    pr = args.packagerepo
+    pr.heads[args.branch].checkout()
 
-    run("git rm -f *.patch", fail=True)
+    pr.index.remove(["*.patch"], working_tree=True)
     run("mv " + repodir + "/*.patch .")
-    run("git add *.patch")
+    pr.index.add(["*.patch"])
     return
 
 def commit(args, cl_entry):
@@ -237,7 +229,7 @@ def commit(args, cl_entry):
         cl_entry = cl_entry[:-1]
         pass
 
-    run("git commit -am '%s'" % cl_entry)
+    pr = args.packagerepo.index.commit(cl_entry)
     return
 
 if __name__ == "__main__":
@@ -289,6 +281,7 @@ if __name__ == "__main__":
 
     s.sync_to_file()
     log("Wrote out spec file!")
+    args.packagerepo.index.add(["*.spec"])
 
     log("Moving patches...")
     move_patches(args)
