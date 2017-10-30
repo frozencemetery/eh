@@ -6,34 +6,14 @@ import argparse
 import glob
 import os
 import re
-import subprocess
+import shutil
 import sys
 import time
 
+import git
 from git import Repo
 
 from spec_parse import Spec
-
-def run(cmd, stderr=None, fail=False):
-    # I don't want to think about globbing
-    res = ""
-    try:
-        res = subprocess.check_output(cmd, shell=True, stderr=stderr)
-        pass
-    except subprocess.CalledProcessError as e:
-        if not fail:
-            raise e
-        res = e.output
-        pass
-    return res
-
-def test(cmd, s):
-    try:
-        run(cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError:
-        log(s)
-        exit(1)
-    return
 
 def verify(args):
     if args.updateonly and args.newversion:
@@ -76,7 +56,7 @@ def verify(args):
         pass
     args.packagerepo = Repo(args.packagedir)
 
-    test("ls " + args.packagedir + "/*.spec", "spec file not found!")
+    assert(len(glob.glob(os.path.join(args.packagedir, "*.spec"))) == 1)
 
     global log
     if args.verbose:
@@ -90,7 +70,9 @@ def verify(args):
 
 def produce_patches(args):
     os.chdir(args.srcrepo.working_dir)
-    run("rm -f *.patch", fail=True, stderr=subprocess.STDOUT)
+    for p in glob.glob("*.patch"):
+        os.remove(p)
+        pass
     args.srcrepo.git.format_patch("-N", args.tag + "..")
 
     incoming_patches = [f for f in os.listdir(".") if f.endswith(".patch")]
@@ -216,8 +198,15 @@ def move_patches(args):
     pr = args.packagerepo
     pr.heads[args.branch].checkout()
 
-    pr.index.remove(["*.patch"], working_tree=True)
-    run("mv " + repodir + "/*.patch .")
+    try:
+        pr.index.remove(["*.patch"], working_tree=True)
+        pass
+    except git.exc.GitCommandError:
+        pass
+
+    for p in glob.glob(os.path.join(repodir, "*.patch")):
+        shutil.move(p, '.')
+        pass
     pr.index.add(["*.patch"])
     return
 
