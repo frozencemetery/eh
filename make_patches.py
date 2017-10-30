@@ -157,8 +157,15 @@ def bookkeep(s, args):
 
     s.release = s.release.replace(release, str(relnum), 1)
 
+    # this needs GitPython >= 1.7 in order to be nice
+    msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
+
     print("Enter changelog (C-d when done):")
-    msg = sys.stdin.read()
+    print(msg)
+    msg += "\n" + sys.stdin.read()
+    if not msg[-1] == '\n':
+        msg += '\n'
+        pass
 
     version = re.match("Version:\s+(.*)", s.version).group(1)
     use_sep = "> - " in s.changelog[:80] # check first line
