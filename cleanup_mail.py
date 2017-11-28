@@ -3,6 +3,8 @@
 import re
 import sys
 
+from bs4 import BeautifulSoup
+
 def unesc(s):
     sl = list(s)
 
@@ -24,11 +26,11 @@ def unesc(s):
     return ''.join(sl)
 
 s = sys.stdin.read()
+soup = BeautifulSoup(s, "lxml")
+[link] = soup.find_all("a", text="this pre-populated mailto link")
+href = link.attrs["href"]
 
-m = re.match(
-    "\<a href=\"mailto:(.*?@.*?)\?body=(.*?)&amp;subject=(.*?)\"\>.*\</a\>",
-    s)
-
+m = re.match("mailto:(.*?@.*?)\?body=(.*?)&subject=(.*?)$", href)
 mailto = m.group(1)
 body = unesc(m.group(2))
 subject = unesc(m.group(3))
