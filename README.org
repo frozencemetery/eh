@@ -24,3 +24,7 @@ From a git repository, generate the patches section(s) of a spec file.
 ** enter_fedora.sh
 
 Wrangler script for entering and exiting a (Fedora) chroot.
+
+** flakecheck.sh
+
+Wrapper around flake8 that turns off some really *bad* suggestions.
