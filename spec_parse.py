@@ -70,8 +70,6 @@ class Spec:
         # %prep extraction is important for patching
         self._preamble, _, rest = self.data.partition("%description\n")
         self._pkgdata, _, rest = rest.partition("%prep\n")
-        self._prep, _, rest = rest.partition("%build\n")
-        self._build, _, rest = rest.partition("\n")
 
         # export (non-patches) fields we support changes to
         self.changelog = self._changelog
