@@ -7,6 +7,7 @@ import glob
 import os
 import re
 import shutil
+import subprocess
 import sys
 import time
 
@@ -145,6 +146,26 @@ def apply_patches(s, incoming_patches):
     s.patches = patches_res
     return patches_res
 
+def get_msg(args):
+    # this needs GitPython >= 1.7 in order to be nice
+    msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
+
+    # vi is absolutely not a reasonable default.  Keep this simple.
+    editor = os.getenv("EDITOR", "nano")
+
+    fname = os.tempnam()
+    open(fname, "w").write(msg)
+
+    subprocess.check_call(["%s %s" % (editor, fname)], shell=True)
+
+    msg = open(fname, "r").read()
+    os.unlink(fname)
+
+    if msg[-1] != '\n':
+        msg += "\n"
+        pass
+    return msg
+
 def bookkeep(s, args):
     release = re.match("Release:\s+(\d+)", s.release).group(1)
     relnum = int(release) + 1
@@ -157,15 +178,7 @@ def bookkeep(s, args):
 
     s.release = s.release.replace(release, str(relnum), 1)
 
-    # this needs GitPython >= 1.7 in order to be nice
-    msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
-
-    print("Enter changelog (C-d when done):")
-    print(msg)
-    msg += "\n" + sys.stdin.read()
-    if not msg[-1] == '\n':
-        msg += '\n'
-        pass
+    msg = get_msg(args)
 
     version = re.match("Version:\s+(.*)", s.version).group(1)
     use_sep = "> - " in s.changelog[:80] # check first line
@@ -175,6 +188,7 @@ def bookkeep(s, args):
               (d, "Robbie Harwood <rharwood@redhat.com>",
                sep, version, relnum, msg)
     s.changelog = new_log + s.changelog
+
     return msg
 
 def handle_autosetup(s, patches):
