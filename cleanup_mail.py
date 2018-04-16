@@ -35,11 +35,11 @@ mailto = m.group(1)
 body = unesc(m.group(2))
 subject = unesc(m.group(3))
 
-print "From: Robbie Harwood <rharwood@redhat.com>"
-print "To: %s" % mailto
-print "Subject: %s" % subject
-print "Fcc: sent"
-print "--text follows this line--"
-print "<#secure method=pgpmime mode=sign>"
-print "%s" % body
-print ""
+print("From: Robbie Harwood <rharwood@redhat.com>")
+print("To: %s" % mailto)
+print("Subject: %s" % subject)
+print("Fcc: sent")
+print("--text follows this line--")
+print("<#secure method=pgpmime mode=sign>")
+print("%s" % body)
+print("")

@@ -8,7 +8,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import time
 
 import git
@@ -239,7 +238,7 @@ def commit(args, cl_entry):
         cl_entry = cl_entry[:-1]
         pass
 
-    pr = args.packagerepo.index.commit(cl_entry)
+    args.packagerepo.index.commit(cl_entry)
     return
 
 if __name__ == "__main__":
