@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 
 import git
@@ -152,8 +153,10 @@ def get_msg(args):
     # vi is absolutely not a reasonable default.  Keep this simple.
     editor = os.getenv("EDITOR", "nano")
 
-    fname = os.tempnam()
-    open(fname, "w").write(msg)
+    f = tempfile.NamedTemporaryFile(delete=False)
+    f.write(msg)
+    fname = f.name
+    f.close()
 
     subprocess.check_call(["%s %s" % (editor, fname)], shell=True)
 
