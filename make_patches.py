@@ -295,7 +295,7 @@ if __name__ == "__main__":
     log("Moving patches...")
     move_patches(args)
 
-    if not args.nocommit and not args.update:
+    if not args.nocommit and not args.updateonly:
         log("Committing changes...")
         commit(args, cl_entry)
         pass
