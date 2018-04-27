@@ -154,7 +154,7 @@ def get_msg(args):
     editor = os.getenv("EDITOR", "nano")
 
     f = tempfile.NamedTemporaryFile(delete=False)
-    f.write(msg)
+    f.write(msg + "\n")
     fname = f.name
     f.close()
 
