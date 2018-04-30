@@ -30,10 +30,10 @@ soup = BeautifulSoup(s, "lxml")
 [link] = soup.find_all("a", text="this pre-populated mailto link")
 href = link.attrs["href"]
 
-m = re.match("mailto:(.*?@.*?)\?body=(.*?)&subject=(.*?)$", href)
-mailto = m.group(1)
-body = unesc(m.group(2))
-subject = unesc(m.group(3))
+# The order of parameters on this link isn't fixed
+mailto = unesc(re.search("mailto:(.*?@.*?)\?", href).group(1))
+subject = unesc(re.search("subject=([^&]*)", href).group(1))
+body = unesc(re.search("body=([^&]*)", href).group(1))
 
 print("From: Robbie Harwood <rharwood@redhat.com>")
 print("To: %s" % mailto)
