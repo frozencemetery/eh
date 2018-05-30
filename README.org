@@ -21,7 +21,7 @@ Pulls out mail from a mailto: link on a webpage.
 
 From a git repository, generate the patches section(s) of a spec file.
 
-** enter_fedora.sh
+** enter_fedora.pu
 
 Wrangler script for entering and exiting a (Fedora) chroot.
 
