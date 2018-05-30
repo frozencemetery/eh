@@ -263,7 +263,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", dest="verbose", action="store_true",
                         help="increase verbosity (default: be quiet)")
     parser.add_argument("-s", dest="skip", action="store_true",
-                        help="skip doing a test application (default: do it)")
+                        help="skip doing builds (default: do it)")
     args = parser.parse_args()
     args = verify(args)
     log("Everything looks okay; let's go...")
@@ -307,7 +307,12 @@ if __name__ == "__main__":
     if not args.skip:
         log("Doing test...")
         cmd = "rhpkg" if "rhel" in args.branch else "fedpkg"
-        chroot(os.getuid(), "cd %s ; %s prep" % (args.packagedir, cmd))
+        r = chroot(os.getuid(),
+                   "cd %s && %s prep && %s push && %s build" % \
+                   (args.packagedir, cmd, cmd, cmd))
+        if r:
+            print("Build failed!")
+            exit(-1)
         pass
 
     log("Done!")
