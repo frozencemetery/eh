@@ -12,6 +12,7 @@ import time
 import git
 from git import Repo
 
+from enter_fedora import chroot
 from spec_parse import Spec
 
 def verify(args):
@@ -261,6 +262,8 @@ if __name__ == "__main__":
                         help="no new version in spec file (default: false)")
     parser.add_argument("-v", dest="verbose", action="store_true",
                         help="increase verbosity (default: be quiet)")
+    parser.add_argument("-s", dest="skip", action="store_true",
+                        help="skip doing a test application (default: do it)")
     args = parser.parse_args()
     args = verify(args)
     log("Everything looks okay; let's go...")
@@ -299,6 +302,12 @@ if __name__ == "__main__":
     if not args.nocommit and not args.updateonly:
         log("Committing changes...")
         commit(args, cl_entry)
+        pass
+
+    if not args.skip:
+        log("Doing test...")
+        cmd = "rhpkg" if "rhel" in args.branch else "fedpkg"
+        chroot(os.getuid(), "cd %s ; %s prep" % (args.packagedir, cmd))
         pass
 
     log("Done!")

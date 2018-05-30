@@ -6,10 +6,6 @@ import shlex
 import sys
 
 def chroot(user, cmd=None):
-    if not cmd:
-        cmd = ""
-        pass
-
     home = os.getenv("HOME")
     if not home:
         print("go home", file=sys.stderr)
@@ -23,12 +19,21 @@ def chroot(user, cmd=None):
         "mount --bind /dev/shm %s/fedora/dev/shm",
     ]]
 
-    cmd = " ".join(cmd)
+    if not cmd:
+        cmd = ""
+        pass
+    else:
+        if type(cmd) != str and type(cmd) != bytes:
+            cmd = " ".join(cmd)
+            pass
+        cmd = "sh -c " + shlex.quote(cmd)
+        pass
     chroot = "exec chroot --userspec=%s:%s %s/fedora/ %s" % \
              (user, user, home, cmd)
 
     script = shlex.quote(";\n".join(setup + [chroot]))
     cmd = "sudo -E sh -c %s" % script
+    print(cmd)
     return os.execvp("sudo", shlex.split(cmd))
 
 if __name__ == "__main__":
