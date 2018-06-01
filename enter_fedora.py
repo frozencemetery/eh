@@ -33,7 +33,6 @@ def chroot(user, cmd=None):
 
     script = shlex.quote(";\n".join(setup + [chroot]))
     cmd = "sudo -E sh -c %s" % script
-    print(cmd)
     return os.execvp("sudo", shlex.split(cmd))
 
 if __name__ == "__main__":
