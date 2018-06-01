@@ -153,7 +153,7 @@ def get_msg(args):
     editor = os.getenv("EDITOR", "nano")
 
     f = tempfile.NamedTemporaryFile(delete=False)
-    f.write(msg + "\n")
+    f.write((msg + "\n").encode('utf-8'))
     fname = f.name
     f.close()
 
