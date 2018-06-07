@@ -278,6 +278,8 @@ if __name__ == "__main__":
                         help="skip doing builds (default: do it)")
     parser.add_argument("bz", default=None,
                         help="bugzilla to reference (default: bad person)")
+    parser.add_argument("errata", default=None,
+                        help="errata to update (default: by hand, later)")
     args = parser.parse_args()
     args = verify(args)
     log("Everything looks okay; let's go...")
@@ -319,12 +321,16 @@ if __name__ == "__main__":
         pass
 
     if not args.skip:
-        log("Doing test...")
+        log("Doing build gunk...")
         pkg = "rhpkg" if "rhel" in args.branch else "fedpkg"
         cmd = "cd %s && %s prep && %s push && %s build" % \
               (args.packagedir, pkg, pkg, pkg)
         if args.bz and "rhel" in args.branch:
-            cmd += "&& rhpkg bugzilla --modified --fixed-in"
+            cmd += " && rhpkg bugzilla --modified --fixed-in"
+            if args.errata:
+                cmd += " && rhpkg errata --erratum %s add-builds"
+                cmd += " && rhpkg errata --erratum %s add-bugs %s"
+                cmd = cmd % (args.errata, args.errata, args.bz)
             pass
         r = chroot(os.getuid(), cmd)
         if r:
