@@ -77,8 +77,9 @@ if __name__ == "__main__":
         elif b < args.to:
             break
 
+        builder = "rhpkg" if dist == "rhel" else "fedpkg"
         chroot(os.getuid(),
-               "cd %s/%s && fedpkg push && fedpkg build --nowait" % \
-               (pkg_repo_base, b))
+               "cd %s/%s && %s push && %s build --nowait" % \
+               (pkg_repo_base, b, builder, builder))
         pass
     pass
