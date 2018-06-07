@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -64,6 +65,14 @@ def verify(args):
         pass
     else:
         log = lambda s: None
+        pass
+
+    if args.bz:
+        args.bz = re.search("[0-9]+", args.bz).group(0)
+        if "rhel" not in args.branch:
+            print("WARN: Fedora doesn't support bugzilla manipulation",
+                  file=sys.stderr)
+            pass
         pass
 
     return args
@@ -148,6 +157,9 @@ def apply_patches(s, incoming_patches):
 def get_msg(args):
     # this needs GitPython >= 1.7 in order to be nice
     msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
+    if args.bz:
+        msg += "\nResolves: #%s" % args.bz
+        pass
 
     # vi is absolutely not a reasonable default.  Keep this simple.
     editor = os.getenv("EDITOR", "nano")
@@ -264,6 +276,8 @@ if __name__ == "__main__":
                         help="increase verbosity (default: be quiet)")
     parser.add_argument("-s", dest="skip", action="store_true",
                         help="skip doing builds (default: do it)")
+    parser.add_argument("bz", default=None,
+                        help="bugzilla to reference (default: bad person)")
     args = parser.parse_args()
     args = verify(args)
     log("Everything looks okay; let's go...")
@@ -306,10 +320,13 @@ if __name__ == "__main__":
 
     if not args.skip:
         log("Doing test...")
-        cmd = "rhpkg" if "rhel" in args.branch else "fedpkg"
-        r = chroot(os.getuid(),
-                   "cd %s && %s prep && %s push && %s build" % \
-                   (args.packagedir, cmd, cmd, cmd))
+        pkg = "rhpkg" if "rhel" in args.branch else "fedpkg"
+        cmd = "cd %s && %s prep && %s push && %s build" % \
+              (args.packagedir, pkg, pkg, pkg)
+        if args.bz and "rhel" in args.branch:
+            cmd += "&& rhpkg bugzilla --modified --fixed-in"
+            pass
+        r = chroot(os.getuid(), cmd)
         if r:
             print("Build failed!")
             exit(-1)
