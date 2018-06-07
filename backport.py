@@ -77,6 +77,8 @@ if __name__ == "__main__":
         elif b < args.to:
             break
 
-        chroot(os.getuid(), "fedpkg push && fedpkg build --no-wait")
+        chroot(os.getuid(),
+               "cd %s/%s && fedpkg push && fedpkg build --nowait" % \
+               (pkg_repo_base, b))
         pass
     pass
