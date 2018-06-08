@@ -158,7 +158,7 @@ def get_msg(args):
     # this needs GitPython >= 1.7 in order to be nice
     msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
     if args.bz:
-        msg += "\nResolves: #%s" % args.bz
+        msg += "\n- Resolves: #%s" % args.bz
         pass
 
     # vi is absolutely not a reasonable default.  Keep this simple.
