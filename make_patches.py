@@ -276,9 +276,9 @@ if __name__ == "__main__":
                         help="increase verbosity (default: be quiet)")
     parser.add_argument("-s", dest="skip", action="store_true",
                         help="skip doing builds (default: do it)")
-    parser.add_argument("bz", default=None,
+    parser.add_argument("bz", default=None, nargs='?',
                         help="bugzilla to reference (default: bad person)")
-    parser.add_argument("errata", default=None,
+    parser.add_argument("errata", default=None, nargs='?',
                         help="errata to update (default: by hand, later)")
     args = parser.parse_args()
     args = verify(args)
