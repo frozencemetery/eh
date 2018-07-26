@@ -3,6 +3,7 @@
 import argparse
 import glob
 import os
+import pwd
 import re
 import shutil
 import subprocess
@@ -72,6 +73,25 @@ def verify(args):
         if "rhel" not in args.branch:
             print("WARN: Fedora doesn't support bugzilla manipulation",
                   file=sys.stderr)
+            pass
+        pass
+
+    if not args.skip:
+        # brew doesn't properly handle ccache collections, and we need to
+        # check that we have a TGT for the right realm anyway else it'll bomb
+        # out later
+        user = pwd.getpwuid(os.getuid()).pw_name
+        realm = "REDHAT.COM" if cwd.endswith(".rhel") else "FEDORAPROJECT.ORG"
+        try:
+            subprocess.check_call(f"kswitch -p {user}@{realm}", shell=True)
+            pass
+        except subprocess.CalledProcessError:
+            try:
+                subprocess.check_call(f"kinit {user}@{realm}", shell=True)
+                pass
+            except subprocess.CalledProcessError as e:
+                print(f"Creds not found! ({e})", file=sys.stderr)
+                exit(1)
             pass
         pass
 
