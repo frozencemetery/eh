@@ -11,13 +11,15 @@ def chroot(user, cmd=None):
         print("go home", file=sys.stderr)
         return -1
 
-    setup = [c % home for c in [
-        "mount --bind /proc %s/fedora/proc",
-        "mount --bind /sys %s/fedora/sys",
-        "mount --bind /dev %s/fedora/dev",
-        "mount --bind /dev/pts %s/fedora/dev/pts",
-        "mount --bind /dev/shm %s/fedora/dev/shm",
-    ]]
+    setup = []
+    if not os.path.exists(f"{home}/fedora/dev/pts"):
+        setup = [f"mount --bind /proc {home}/fedora/proc",
+                 f"mount --bind /sys {home}/fedora/sys",
+                 f"mount --bind /dev {home}/fedora/dev",
+                 f"mount --bind /dev/pts {home}/fedora/dev/pts",
+                 f"mount --bind /dev/shm {home}/fedora/dev/shm",
+        ]
+        pass
 
     if not cmd:
         cmd = ""
@@ -28,11 +30,10 @@ def chroot(user, cmd=None):
             pass
         cmd = "sh -c " + shlex.quote(cmd)
         pass
-    chroot = "exec chroot --userspec=%s:%s %s/fedora/ %s" % \
-             (user, user, home, cmd)
+    chroot = f"exec chroot --userspec={user}:{user} {home}/fedora/ {cmd}"
 
     script = shlex.quote(";\n".join(setup + [chroot]))
-    cmd = "sudo -E sh -c %s" % script
+    cmd = f"sudo -E sh -c {script}"
     return os.execvp("sudo", shlex.split(cmd))
 
 if __name__ == "__main__":
