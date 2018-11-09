@@ -18,10 +18,6 @@ from enter_fedora import chroot
 from spec_parse import Spec
 
 def verify(args):
-    if args.updateonly and args.newversion:
-        print("Error: can't specify both new version and updateonly!")
-        exit(1)
-
     r = Repo(".")
     args.srcrepo = r
 
@@ -200,16 +196,13 @@ def get_msg(args):
     return msg
 
 def bookkeep(s, args):
-    release = re.match("Release:\s+(\d+)", s.release).group(1)
-    relnum = int(release) + 1
+    release = re.match(r"Release:\s+(.*)%\{\?dist\}", s.release).group(1)
+    releases = release.split(".")
+    relnum = int(releases[-1]) + 1
+    releases[-1] = str(relnum)
+    curr = ".".join(releases)
 
-    if args.newversion:
-        version = re.match("Version:\s+(.*)", s.version).group(1)
-        s.version = s.version.replace(version, args.newversion, 1)
-        relnum = 1
-        pass
-
-    s.release = s.release.replace(release, str(relnum), 1)
+    s.release = s.release.replace(release, curr, 1)
 
     msg = get_msg(args)
 
@@ -217,10 +210,8 @@ def bookkeep(s, args):
     use_sep = "> - " in s.changelog[:80] # check first line
     sep = "- " if use_sep else ""
     d = time.strftime("%a %b %d %Y")
-    new_log = "* %s %s %s%s-%s\n%s\n" % \
-              (d, "Robbie Harwood <rharwood@redhat.com>",
-               sep, version, relnum, msg)
-    s.changelog = new_log + s.changelog
+    l = f"* {d} Robbie Harwood <rharwood@redhat.com> {sep}{version}-{curr}"
+    s.changelog = f"{l}\n{msg}\n{s.changelog}"
 
     return msg
 
@@ -282,8 +273,6 @@ if __name__ == "__main__":
                         help="branch to work from (default: current)")
     parser.add_argument("-d", dest="packagedir", default=None,
                         help="package repository dir (default: from branch)")
-    parser.add_argument("-n", dest="newversion", default=None,
-                        help="bump version specified (default: don't)")
     parser.add_argument("-N", dest="nocommit", action="store_true",
                         help="leave changes uncommitted (default: commit)")
     parser.add_argument("-p", dest="prefix", default=1, type=int,
