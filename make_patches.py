@@ -342,9 +342,9 @@ if __name__ == "__main__":
         if args.bz and "rhel" in args.branch:
             cmd += " && rhpkg bugzilla --modified --fixed-in"
             if args.errata:
-                cmd += " && rhpkg errata --erratum %s add-builds"
-                cmd += " && rhpkg errata --erratum %s add-bugs %s"
-                cmd = cmd % (args.errata, args.errata, args.bz)
+                pv = args.branch.upper()
+                cmd += f" && rhpkg errata add-bugs {args.bz}"
+                cmd += f" && rhpkg errata add-builds --product-version {pv}"
             pass
         r = chroot(os.getuid(), cmd)
         if r:
