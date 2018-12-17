@@ -322,12 +322,14 @@ if __name__ == "__main__":
     log(patches)
     log("")
 
-    s.sync_to_file()
-    log("Wrote out spec file!")
-    args.packagerepo.index.add(["*.spec"])
-
     log("Moving patches...")
     move_patches(args)
+
+    if s.sync_to_file():
+        print("Can't continue; problem syncing spec file!")
+        exit(-1)
+    log("Wrote out spec file!")
+    args.packagerepo.index.add(["*.spec"])
 
     if not args.nocommit and not args.updateonly:
         log("Committing changes...")

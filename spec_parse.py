@@ -81,6 +81,8 @@ class Spec:
 
     # Will not delete any fields.
     def sync_to_file(self):
+        failed = False
+
         self.data = self.data.replace("%changelog\n" + self._changelog,
                                       "%changelog\n" + self.changelog)
         self._changelog = self.changelog
@@ -113,12 +115,13 @@ class Spec:
             # This isn't exactly great
             print("\nYou need to add the patches section yourself:")
             print(new_patches)
+            failed = True
             pass
         self._patches = new_patches
 
         with open(self.path, "w") as f:
             f.write(self.data)
             pass
-        return
+        return failed
 
     pass # class Spec
