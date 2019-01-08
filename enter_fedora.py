@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import fcntl
 import os
 import shlex
 import sys
@@ -11,15 +12,26 @@ def chroot(user, cmd=None):
         print("go home", file=sys.stderr)
         return -1
 
+    lockfile = open(f"{home}/.chrootlock", "a")
+    try:
+        fcntl.lockf(lockfile, fcntl.LOCK_EX)
+        lockfile.write(f"{os.getpid()}\n")
+        lockfile.flush()
+        pass
+    except Exception:
+        print(f"Already locked by {lockfile.read()}")
+        exit(-1)
+
     setup = []
-    if not os.path.exists(f"{home}/fedora/dev/pts"):
-        setup = [f"mount --bind /proc {home}/fedora/proc",
+    if not os.path.exists(f"{home}/fedora/dev/shm"):
+        setup = [f"mount -t proc none {home}/fedora/proc",
                  f"mount --bind /sys {home}/fedora/sys",
                  f"mount --bind /dev {home}/fedora/dev",
                  f"mount --bind /dev/pts {home}/fedora/dev/pts",
                  f"mount --bind /dev/shm {home}/fedora/dev/shm",
         ]
         pass
+    fcntl.lockf(lockfile, fcntl.LOCK_UN)
 
     if not cmd:
         cmd = ""
