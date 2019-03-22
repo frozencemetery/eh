@@ -345,8 +345,9 @@ if __name__ == "__main__":
             cmd += " && rhpkg bugzilla --modified --fixed-in"
             if args.errata:
                 pv = args.branch.upper()
-                cmd += f" && rhpkg errata add-bugs {args.bz}"
-                cmd += f" && rhpkg errata add-builds --product-version {pv}"
+                rce = f"rhpkg errata --erratum {args.errata}"
+                cmd += f" && {rce} add-bugs --bug {args.bz}"
+                cmd += f" && {rce} add-builds --product-version {pv}"
             pass
         r = chroot(os.getuid(), cmd)
         if r:
