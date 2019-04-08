@@ -14,6 +14,7 @@ import time
 import git
 from git import Repo
 
+from delay import wait_gate
 from enter_fedora import chroot
 from spec_parse import Spec
 
@@ -53,6 +54,7 @@ def verify(args):
         args.packagedir = os.sep.join([os.getenv("HOME"), cwd, args.branch])
         pass
     args.packagerepo = Repo(args.packagedir)
+    args.package = args.packagedir.split("/")[-2].split(".")[0]
 
     assert(len(glob.glob(os.path.join(args.packagedir, "*.spec"))) == 1)
 
@@ -343,16 +345,33 @@ if __name__ == "__main__":
               (args.packagedir, pkg, pkg, pkg)
         if args.bz and "rhel" in args.branch:
             cmd += " && rhpkg bugzilla --modified --fixed-in"
-            if args.errata:
-                pv = args.branch.upper()
-                rce = f"rhpkg errata --erratum {args.errata}"
-                cmd += f" && {rce} add-bugs --bug {args.bz}"
-                cmd += f" && {rce} add-builds --product-version {pv}"
             pass
         r = chroot(os.getuid(), cmd)
         if r:
             print("Build failed!")
             exit(-1)
+
+        if args.bz and "rhel" in args.branch and args.errata:
+            d = args.branch[5:6]
+            if int(d) >= 8:
+                wait_gate(package)
+                print('\a') # get attention because sudo has timed out
+                pass
+
+            cmd = f"cd {args.packagedir}"
+            pv = args.branch.upper()
+            vr = cl_entry.split(' ')[-1]
+            nvr = f"{args.package}-{vr}.el{d}"
+
+            rce = f"rhpkg errata --erratum {args.errata}"
+            cmd += f" && {rce} add-bugs --bug {args.bz}"
+            cmd += f" && {rce} add-builds --product-version {pv} {nvr}"
+
+            r = chroot(os.getuid(), cmd)
+            if r:
+                print("Errata manipulation failed!")
+                exit(-1)
+            pass
         pass
 
     log("Done!")
