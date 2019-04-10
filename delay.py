@@ -18,7 +18,7 @@ def wait_gate(pkg):
         time.sleep(1)
         r = requests.get(url, params=params)
         if r.status_code != 200:
-            print("Problematic datagrepper request: got a {r.status_code}")
+            print(f"Problematic datagrepper request: got a {r.status_code}")
             exit(-1)
 
         j = json.loads(r.text)
@@ -30,7 +30,7 @@ def wait_gate(pkg):
             exit(-1)
         elif summary != last_summary:
             last_summary = summary
-            print("Gating status update: {summary}")
+            print(f"Gating status update: {summary}")
         continue
 
     print("Passed gating (woo!)")
