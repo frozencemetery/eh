@@ -355,6 +355,7 @@ if __name__ == "__main__":
             d = args.branch[5:6]
             if int(d) >= 8:
                 wait_gate(package)
+                time.sleep(30) # TODO wait on the brew tag instead
                 print('\a') # get attention because sudo has timed out
                 pass
 

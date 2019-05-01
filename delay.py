@@ -34,7 +34,6 @@ def wait_gate(pkg):
         continue
 
     print("Passed gating (woo!)")
-    time.sleep(30) # TODO wait on the brew tag instead
     return
 
 def verify(args):
