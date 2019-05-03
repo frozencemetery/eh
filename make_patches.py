@@ -367,7 +367,7 @@ if __name__ == "__main__":
 
             rce = f"rhpkg errata --erratum {args.errata}"
             cmd += f" && {rce} new-state new-files"
-            cmd += f" && {rce} add-bugs --bug {args.bz}"
+            cmd += f" || {rce} add-bugs --bug {args.bz}"
             cmd += f" && {rce} add-builds --product-version {pv} {nvr}"
             cmd += f" && {rce} new-state qe"
 
