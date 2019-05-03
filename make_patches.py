@@ -344,6 +344,7 @@ if __name__ == "__main__":
         cmd = "cd %s && %s prep && %s push && %s build" % \
               (args.packagedir, pkg, pkg, pkg)
         if args.bz and "rhel" in args.branch:
+            cmd = "bugzilla login &&" + cmd
             cmd += " && rhpkg bugzilla --modified --fixed-in"
             pass
         r = chroot(os.getuid(), cmd)
