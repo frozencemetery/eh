@@ -4,6 +4,7 @@ import argparse
 import fcntl
 import os
 import shlex
+import subprocess
 import sys
 
 def chroot(user, cmd=None):
@@ -46,7 +47,7 @@ def chroot(user, cmd=None):
 
     script = shlex.quote(";\n".join(setup + [chroot]))
     cmd = f"sudo -E sh -c {script}"
-    return os.execvp("sudo", shlex.split(cmd))
+    return subprocess.call(shlex.split(cmd))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
