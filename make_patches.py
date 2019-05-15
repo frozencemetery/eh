@@ -347,7 +347,7 @@ if __name__ == "__main__":
             cmd = "bugzilla login &&" + cmd
             cmd += " && rhpkg bugzilla --modified --fixed-in"
             pass
-        r = chroot(os.getuid(), cmd)
+        r = chroot(cmd)
         if r:
             print("Build failed!")
             exit(-1)
@@ -370,7 +370,7 @@ if __name__ == "__main__":
             cmd += f"{rce} add-bugs --bug {args.bz} && "
             cmd += f"{rce} add-builds --product-version {pv} {nvr}"
 
-            r = chroot(os.getuid(), cmd)
+            r = chroot(cmd)
             if r:
                 print("Errata manipulation failed!")
                 exit(-1)
@@ -379,7 +379,7 @@ if __name__ == "__main__":
             print('\a') # get attention in case sudo has timed out
 
             cmd = f"cd {args.args.packagedir} && {rce} new-state qe"
-            r = chroot(os.getuid(), cmd)
+            r = chroot(cmd)
             if r:
                 print("Failed to set errata to QE!")
                 exit(-1)

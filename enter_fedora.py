@@ -7,7 +7,11 @@ import shlex
 import subprocess
 import sys
 
-def chroot(user, cmd=None):
+def chroot(cmd=None, user=None):
+    if not user:
+        user = os.getuid()
+        pass
+
     home = os.getenv("HOME")
     if not home:
         print("go home", file=sys.stderr)
@@ -56,4 +60,4 @@ if __name__ == "__main__":
                         help="user to run commands as inside the chroot")
     parser.add_argument("cmd", nargs=argparse.REMAINDER)
     args = parser.parse_args(sys.argv[1:])
-    exit(chroot(args.user, args.cmd))
+    exit(chroot(args.cmd, args.user))
