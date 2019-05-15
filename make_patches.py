@@ -14,7 +14,7 @@ import time
 import git
 from git import Repo
 
-from delay import wait_gate
+from delay import wait_gate, wait_rpmdiff
 from enter_fedora import chroot
 from spec_parse import Spec
 
@@ -360,20 +360,28 @@ if __name__ == "__main__":
                 print('\a') # get attention because sudo has timed out
                 pass
 
-            cmd = f"cd {args.packagedir}"
+            cmd = f"cd {args.packagedir} &&"
             pv = args.branch.upper()
             vr = cl_entry.split(' ')[-1]
             nvr = f"{args.package}-{vr}.el{d}"
 
             rce = f"rhpkg errata --erratum {args.errata}"
-            cmd += f" && {rce} new-state new-files"
-            cmd += f" || {rce} add-bugs --bug {args.bz}"
-            cmd += f" && {rce} add-builds --product-version {pv} {nvr}"
-            cmd += f" && {rce} new-state qe"
+            cmd += f"{rce} new-state new-files ; "
+            cmd += f"{rce} add-bugs --bug {args.bz} && "
+            cmd += f"{rce} add-builds --product-version {pv} {nvr}"
 
             r = chroot(os.getuid(), cmd)
             if r:
                 print("Errata manipulation failed!")
+                exit(-1)
+
+            wait_rpmdiff(package)
+            print('\a') # get attention in case sudo has timed out
+
+            cmd = f"cd {args.args.packagedir} && {rce} new-state qe"
+            r = chroot(os.getuid(), cmd)
+            if r:
+                print("Failed to set errata to QE!")
                 exit(-1)
             pass
         pass
