@@ -1,6 +1,7 @@
-* rpm-git-tree
+* eh
 
-Tooling for developing RPM packages from a release branch.
+Various build and release tooling.  Definitely doesn't stand for "egregious
+hacks".
 
 My git repositories contain branches for each relevant release, based on
 upstream's git tag for the appropriate release, like
