@@ -33,3 +33,8 @@ Wrangler script for entering and exiting a (Fedora) chroot.
 ** flakecheck.sh
 
 Wrapper around flake8 that turns off some really *bad* suggestions.
+
+** build.py
+
+Autodetecting builder.  Not very smart, but better than shell history for
+remembering invocations.
