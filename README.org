@@ -22,6 +22,10 @@ Pulls out mail from a mailto: link on a webpage.
 
 From a git repository, generate the patches section(s) of a spec file.
 
+** delay.py
+
+Descheduling interface for message bus events.
+
 ** backport.py
 
 Move trees around to build backports, much like make_patches.py
