@@ -6,7 +6,7 @@ hacks".
 My git repositories contain branches for each relevant release, based on
 upstream's git tag for the appropriate release, like
 [[https://github.com/frozencemetery/krb5/tree/rawhide][my Fedora krb5 tree]].
-I then use make_patches.py (which calls into spec_parse.py) to produce
+I then use make_patches (which calls into spec_parse.py) to produce
 dist-git trees, like [[https://github.com/frozencemetery/krb5_fedora][the
 Fedora krb5 dist-git]].  Finally, these are built in a Fedora chroot
 (controlled using enter_fedora.sh).
@@ -14,31 +14,31 @@ Fedora krb5 dist-git]].  Finally, these are built in a Fedora chroot
 More features as annoyance warrants.  Pull requests welcome, but I probably
 won't take anything complicated that I don't myself use.
 
-** cleanup_mail.py
+** cleanup_mail
 
 Pulls out mail from a mailto: link on a webpage.
 
-** make_patches.py
+** make_patches
 
 From a git repository, generate the patches section(s) of a spec file.
 
-** delay.py
+** delay
 
 Descheduling interface for message bus events.
 
-** backport.py
+** backport
 
 Move trees around to build backports, much like make_patches.py
 
-** enter_fedora.py
+** enter_fedora
 
-Wrangler script for entering and exiting a (Fedora) chroot.
+Wrangler script/library for entering and exiting a (Fedora) chroot.
 
-** flakecheck.sh
+** flakecheck
 
 Wrapper around flake8 that turns off some really *bad* suggestions.
 
-** build.py
+** build
 
 Autodetecting builder.  Not very smart, but better than shell history for
 remembering invocations.
