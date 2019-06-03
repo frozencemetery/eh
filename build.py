@@ -5,7 +5,10 @@ import os
 import subprocess
 import sys
 
-def runex(cmd):
+def runex(cmd, retry=False, path="."):
+    if retry and os.path.exists(path):
+        return
+
     print(f"+{cmd}")
     try:
         subprocess.check_call([cmd], shell=True)
@@ -43,6 +46,8 @@ if __name__ == "__main__":
                         help="Force use of clang (default: yes)")
     parser.add_argument("-g", dest="gcc", action="store_true",
                         help="Force use of gcc (default: no)")
+    parser.add_argument("-r", dest="retry", action="store_true",
+                        help="Try to build from where we left off")
     parser.add_argument("path", nargs='?', default=".",
                         help="where to build (default: cwd)")
     args = parser.parse_args()
@@ -56,11 +61,14 @@ if __name__ == "__main__":
 
     os.chdir(args.path)
 
-    print(subprocess.getoutput("git clean -xdf"))
+    if not args.retry:
+        print(subprocess.getoutput("git clean -xdf"))
+        pass
 
-    runex("autoreconf -fiv")
+    runex("autoreconf -fiv", args.retry, "configure")
     runex(f"./configure CC=$(which {args.c_compiler}) "
-          f"CFLAGS='-O0 -ggdb' {get_configure_flags(args.project)}")
+          f"CFLAGS='-O0 -ggdb' {get_configure_flags(args.project)}",
+          args.retry, "Makefile")
     runex(f"make -sj8 >/dev/null")
     runex(f"make check")
 
