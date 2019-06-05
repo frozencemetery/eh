@@ -357,7 +357,7 @@ if __name__ == "__main__":
         if args.bz and "rhel" in args.branch and args.errata:
             d = args.branch[5:6]
             if int(d) >= 8:
-                wait_gate(package)
+                wait_gate(args.package)
                 time.sleep(30) # TODO wait on the brew tag instead
                 print('\a') # get attention because sudo has timed out
                 pass
@@ -377,7 +377,7 @@ if __name__ == "__main__":
                 print("Errata manipulation failed!")
                 exit(-1)
 
-            wait_rpmdiff(package)
+            wait_rpmdiff(args.package)
             print('\a') # get attention in case sudo has timed out
 
             cmd = f"cd {args.args.packagedir} && {rce} new-state qe"
