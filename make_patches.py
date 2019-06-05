@@ -37,22 +37,19 @@ def verify(args):
         pass
     r.tags[args.tag] # check it exists
 
-    if not args.packagedir:
-        cwd = r.working_dir.split(os.sep)
-        while cwd[-1] in ["rawhide", args.branch]:
-            del(cwd[-1])
-            pass
-        cwd = cwd[-1].split(".")[0]
-
-        if "rhel" in args.branch:
-            cwd += ".rhel"
-            pass
-        else:
-            cwd += ".fedora"
-            pass
-
-        args.packagedir = os.sep.join([os.getenv("HOME"), cwd, args.branch])
+    cwd = r.working_dir.split(os.sep)
+    while cwd[-1] in ["rawhide", args.branch]:
+        del(cwd[-1])
         pass
+    cwd = cwd[-1].split(".")[0]
+
+    if "rhel" in args.branch:
+        cwd += ".rhel"
+        pass
+    else:
+        cwd += ".fedora"
+        pass
+    args.packagedir = os.sep.join([os.getenv("HOME"), cwd, args.branch])
     args.packagerepo = Repo(args.packagedir)
     args.package = args.packagedir.split("/")[-2].split(".")[0]
 
@@ -273,8 +270,6 @@ if __name__ == "__main__":
         description="Munge a patched git tree into an existing spec file.")
     parser.add_argument("-b", dest="branch", default=None,
                         help="branch to work from (default: current)")
-    parser.add_argument("-d", dest="packagedir", default=None,
-                        help="package repository dir (default: from branch)")
     parser.add_argument("-N", dest="nocommit", action="store_true",
                         help="leave changes uncommitted (default: commit)")
     parser.add_argument("-p", dest="prefix", default=1, type=int,
@@ -287,6 +282,8 @@ if __name__ == "__main__":
                         help="increase verbosity (default: be quiet)")
     parser.add_argument("-s", dest="skip", action="store_true",
                         help="skip doing builds (default: do it)")
+    parser.add_argument("-d", dest="dontpatch", action="store_true",
+                        help="start at build step (default: also do patches)")
     parser.add_argument("bz", default=None, nargs='?',
                         help="bugzilla to reference (default: bad person)")
     parser.add_argument("errata", default=None, nargs='?',
@@ -295,8 +292,9 @@ if __name__ == "__main__":
     args = verify(args)
     log("Everything looks okay; let's go...")
 
-    incoming_patches = produce_patches(args)
-    log("Patches produced correctly...")
+    if not args.dontpatch:
+        incoming_patches = produce_patches(args)
+        log("Patches produced correctly...")
 
     # Some people think it's a great idea to abuse their ProvenPackager status
     # to touch things that are better left alone.  They could not be more
@@ -306,37 +304,41 @@ if __name__ == "__main__":
     s = Spec(glob.glob(args.packagedir + "/*.spec")[0])
     log("Spec file parsed...")
 
-    patches_res = apply_patches(s, incoming_patches)
-    log("New patches applied...")
+    if not args.dontpatch:
+        patches_res = apply_patches(s, incoming_patches)
+        log("New patches applied...")
 
-    if not args.updateonly:
+    if not args.updateonly and not args.dontpatch:
         cl_entry = bookkeep(s, args)
         log("Kept books...")
         pass
 
-    patches = generate_patch_section(patches_res)
-    if "%autosetup" not in s.prep:
-        handle_autosetup(s, patches)
-        log("Synced autosetup data...")
-        pass
-    log("In case %autosetup detection fails:")
-    log("")
-    log(patches)
-    log("")
+    if not args.dontpatch:
+        patches = generate_patch_section(patches_res)
+        if "%autosetup" not in s.prep:
+            handle_autosetup(s, patches)
+            log("Synced autosetup data...")
+            pass
+        log("In case %autosetup detection fails:")
+        log("")
+        log(patches)
+        log("")
 
-    log("Moving patches...")
-    move_patches(args)
+        log("Moving patches...")
+        move_patches(args)
 
-    if s.sync_to_file():
-        print("Can't continue; problem syncing spec file!")
-        exit(-1)
-    log("Wrote out spec file!")
-    args.packagerepo.index.add(["*.spec"])
+        if s.sync_to_file():
+            print("Can't continue; problem syncing spec file!")
+            exit(-1)
 
-    if not args.nocommit and not args.updateonly:
-        log("Committing changes...")
-        commit(args, cl_entry)
-        pass
+        log("Wrote out spec file!")
+        args.packagerepo.index.add(["*.spec"])
+
+        if not args.nocommit and not args.updateonly:
+            log("Committing changes...")
+            commit(args, cl_entry)
+            pass
+        pass # if not args.dontpatch
 
     if not args.skip:
         log("Doing build gunk...")
