@@ -12,7 +12,7 @@ from enter_fedora import chroot
 def run_hard(s):
     try:
         subprocess.check_output(s.split(" "))
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print("While running $(%s) in %s" % (s, os.getcwd()),
               file=sys.stderr)
         exit(-1)
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     branch = srcrepo_path.pop()
     reponame = srcrepo_path.pop()
     package = reponame.split(".git")[0]
-    
+
     if branch.startswith("rhel-"):
         dist = "rhel"
         pass
@@ -70,16 +70,15 @@ if __name__ == "__main__":
         run_hard("git merge --ff-only %s" % branch)
         os.chdir("..")
         pass
-    
+
     for b in branches:
         if b >= branch:
             continue
         elif b < args.to:
             break
 
-        builder = "rhpkg" if dist == "rhel" else "fedpkg"
-        chroot(os.getuid(),
-               "cd %s/%s && %s push && %s build --nowait" % \
-               (pkg_repo_base, b, builder, builder))
+        p = "rhpkg" if dist == "rhel" else "fedpkg"
+        cmd = f"cd {pkg_repo_base}/{b} && {p} push && {p} build --nowait"
+        chroot(os.getuid(), cmd)
         pass
     pass

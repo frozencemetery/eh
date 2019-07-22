@@ -3,7 +3,6 @@
 import argparse
 import os
 import subprocess
-import sys
 
 def runex(cmd, new=True, path="."):
     if not new and os.path.exists(path):

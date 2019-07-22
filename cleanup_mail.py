@@ -31,7 +31,7 @@ soup = BeautifulSoup(s, "lxml")
 href = link.attrs["href"]
 
 # The order of parameters on this link isn't fixed
-mailto = unesc(re.search("mailto:(.*?@.*?)\?", href).group(1))
+mailto = unesc(re.search(r"mailto:(.*?@.*?)\?", href).group(1))
 subject = unesc(re.search("subject=([^&]*)", href).group(1))
 body = unesc(re.search("body=([^&]*)", href).group(1))
 

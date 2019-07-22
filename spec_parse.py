@@ -49,11 +49,11 @@ class Spec:
 
         # tosses out all descriptions and stuff
         rest, _, _ = rest.rpartition("%description")
-        self._release = re.search("\n(Release:\s*.*)\n", rest).group(1)
-        self._version = re.search("\n(Version:\s*.*)\n", rest).group(1)
+        self._release = re.search("\n(Release:\\s*.*)\n", rest).group(1)
+        self._version = re.search("\n(Version:\\s*.*)\n", rest).group(1)
 
         # keep track of numbering and such here
-        patches = re.findall("Patch\d+:\s*[a-zA-Z0-9_.-]+", rest)
+        patches = re.findall(r"Patch\d+:\s*[a-zA-Z0-9_.-]+", rest)
         if len(patches) != 0:
             startind = self.data.index(patches[0])
             endind = self.data.index(patches[-1]) + len(patches[-1])
@@ -62,7 +62,7 @@ class Spec:
         else:
             self._patches = None
             pass
-        plist = [re.search("^Patch(\d+):\s*(.*)$", p).groups()
+        plist = [re.search(r"^Patch(\d+):\s*(.*)$", p).groups()
                  for p in patches]
         self.patches = [(int(k), v) for (k, v) in plist]
         self.patches.sort()

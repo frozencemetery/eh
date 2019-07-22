@@ -205,7 +205,7 @@ def bookkeep(s, args):
 
     msg = get_msg(args)
 
-    version = re.match("Version:\s+(.*)", s.version).group(1)
+    version = re.match(r"Version:\s+(.*)", s.version).group(1)
     use_sep = "> - " in s.changelog[:80] # check first line
     sep = "- " if use_sep else ""
     d = time.strftime("%a %b %d %Y")
