@@ -64,9 +64,10 @@ if __name__ == "__main__":
         print(subprocess.getoutput("git clean -xdf"))
         pass
 
+    cflags = "-O0 -ggdb -fPIE -fPIC -Wl,-z,relro"
     runex("autoreconf -fiv", args.new, "configure")
     runex(f"./configure CC=$(which {args.c_compiler}) "
-          f"CFLAGS='-O0 -ggdb' {get_configure_flags(args.project)}",
+          f"CFLAGS='{cflags}' {get_configure_flags(args.project)}",
           args.new, "Makefile")
     runex(f"make -sj8 >/dev/null")
     runex(f"make check")
