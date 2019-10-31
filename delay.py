@@ -55,8 +55,8 @@ def wait_rpmdiff(pkg):
         pass
 
     status = j["raw_messages"][0]["msg"]["overall_score"]
-    if status == "Passed":
-        # Hypothetical case
+    if status in ["Passed", "Info"]:
+        # Info means Passed; Passed is hypothetical
         print("Passed rpmdiff on the first try!  You go, Glen Coco!")
         return
 
