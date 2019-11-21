@@ -357,6 +357,7 @@ if __name__ == "__main__":
         if args.bz and "rhel" in args.branch and args.errata:
             d = args.branch[5:6]
             if int(d) >= 8:
+                time.sleep(120) # datagrepper is *really* slow
                 wait_gate(args.package)
                 time.sleep(30) # TODO wait on the brew tag instead
                 print('\a') # get attention because sudo has timed out
