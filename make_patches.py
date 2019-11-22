@@ -14,7 +14,7 @@ import time
 import git
 from git import Repo
 
-from delay import wait_gate, wait_rpmdiff
+from delay import wait_gate, wait_rpmdiff, wait_covscan
 from enter_fedora import chroot
 from spec_parse import Spec
 
@@ -379,6 +379,7 @@ if __name__ == "__main__":
                 exit(-1)
 
             wait_rpmdiff(args.package)
+            wait_covscan(args.package)
             print('\a') # get attention in case sudo has timed out
 
             cmd = f"cd {args.args.packagedir} && {rce} new-state qe"
