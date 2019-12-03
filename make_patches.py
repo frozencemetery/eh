@@ -24,31 +24,24 @@ def verify(args):
 
     if args.branch:
         r.heads[args.branch].checkout()
-        pass
     else:
         args.branch = str(r.active_branch)
-        pass
     if args.branch == "rawhide":
         args.branch = "master"
-        pass
 
     if not args.tag:
         args.tag = r.git.describe("--abbrev=0", "--tags")
-        pass
     r.tags[args.tag] # check it exists
 
     cwd = r.working_dir.split(os.sep)
     while cwd[-1] in ["rawhide", args.branch]:
         del(cwd[-1])
-        pass
     cwd = cwd[-1].split(".")[0]
 
     if "rhel" in args.branch:
         cwd += ".rhel"
-        pass
     else:
         cwd += ".fedora"
-        pass
     args.packagedir = os.sep.join([os.getenv("HOME"), cwd, args.branch])
     args.packagerepo = Repo(args.packagedir)
     args.package = args.packagedir.split("/")[-2].split(".")[0]
@@ -58,18 +51,14 @@ def verify(args):
     global log
     if args.verbose:
         log = lambda s: print(s)
-        pass
     else:
         log = lambda s: None
-        pass
 
     if args.bz:
         args.bz = re.search("[0-9]+", args.bz).group(0)
         if "rhel" not in args.branch:
             print("WARN: Fedora doesn't support bugzilla manipulation",
                   file=sys.stderr)
-            pass
-        pass
 
     if not args.skip:
         # brew doesn't properly handle ccache collections, and we need to
@@ -79,16 +68,12 @@ def verify(args):
         realm = "REDHAT.COM" if cwd.endswith(".rhel") else "FEDORAPROJECT.ORG"
         try:
             subprocess.check_call(f"kswitch -p {user}@{realm}", shell=True)
-            pass
         except subprocess.CalledProcessError:
             try:
                 subprocess.check_call(f"kinit {user}@{realm}", shell=True)
-                pass
             except subprocess.CalledProcessError as e:
                 print(f"Creds not found! ({e})", file=sys.stderr)
                 exit(1)
-            pass
-        pass
 
     return args
 
@@ -96,7 +81,6 @@ def produce_patches(args):
     os.chdir(args.srcrepo.working_dir)
     for p in glob.glob("*.patch"):
         os.remove(p)
-        pass
     args.srcrepo.git.format_patch("-N", args.tag + "..")
 
     incoming_patches = [f for f in os.listdir(".") if f.endswith(".patch")]
@@ -108,7 +92,6 @@ def produce_patches(args):
         # legacy, pre-me patches
         if newp.endswith(".patch.patch"):
             newp = newp[:-len(".patch")]
-            pass
 
         # remove git's initial numbering now that order is set
         newp = newp[5:]
@@ -118,12 +101,9 @@ def produce_patches(args):
         # strip out git's version at the bottom
         with open(newp, "r") as f:
             d = f.read()
-            pass
         d = d.replace(d[d.index("\n-- \n"):], "\n")
         with open(newp, "w") as f:
             f.write(d)
-            pass
-        pass
     return incoming_patches
 
 def apply_patches(s, incoming_patches):
@@ -131,8 +111,6 @@ def apply_patches(s, incoming_patches):
     for (k, v) in s.patches:
         if v in incoming_patches:
             patches_old.append((k, v))
-            pass
-        pass
 
     nextind = 0
     patches_res = []
@@ -156,7 +134,6 @@ def apply_patches(s, incoming_patches):
             pass
         patches_res.append((nextind, p))
         nextind += 1
-        pass
 
     if len(incoming_patches) > 0:
         log("Warning: Failed to preserve existing numbering!")
@@ -164,7 +141,6 @@ def apply_patches(s, incoming_patches):
         # Keep backporting clearly easy, but keep the common prefix
         nextind = 1 + max([k for (k, _) in patches_res])
         patches_res += list(enumerate(incoming_patches, nextind))
-        pass
 
     s.patches = patches_res
     return patches_res
@@ -174,7 +150,6 @@ def get_msg(args):
     msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
     if args.bz:
         msg += "\n- Resolves: #%s" % args.bz
-        pass
 
     # vi is absolutely not a reasonable default.  Keep this simple.
     editor = os.getenv("EDITOR", "nano")
@@ -191,7 +166,6 @@ def get_msg(args):
 
     if msg[-1] != '\n':
         msg += "\n"
-        pass
     return msg
 
 def bookkeep(s, args):
@@ -221,7 +195,6 @@ def handle_autosetup(s, patches):
     insind = 0
     while not nopatches[insind].startswith("%setup"):
         insind += 1
-        pass
     nopatches.insert(insind + 1, patches)
     s.prep = "\n".join(nopatches)
     return
@@ -231,7 +204,6 @@ def generate_patch_section(patches_res):
     for (i, newf) in patches_res:
         patches += "%%patch%d -p%d -b .%s\n" % \
                    (i, args.prefix, newf[:-len(".patch")].replace(" ", "-"))
-        pass
     patches = patches[:-1]
     return patches
 
@@ -244,13 +216,11 @@ def move_patches(args):
 
     try:
         pr.index.remove(["*.patch"], working_tree=True)
-        pass
     except git.exc.GitCommandError:
         pass
 
     for p in glob.glob(os.path.join(repodir, "*.patch")):
         shutil.move(p, '.')
-        pass
     pr.index.add(["*.patch"])
     return
 
@@ -260,7 +230,6 @@ def commit(args, cl_entry):
     cl_entry = cl_entry.replace("\n- ", "\n")
     while cl_entry[-1] == '\n':
         cl_entry = cl_entry[:-1]
-        pass
 
     args.packagerepo.index.commit(cl_entry)
     return
@@ -311,14 +280,12 @@ if __name__ == "__main__":
     if not args.updateonly and not args.dontpatch:
         cl_entry = bookkeep(s, args)
         log("Kept books...")
-        pass
 
     if not args.dontpatch:
         patches = generate_patch_section(patches_res)
         if "%autosetup" not in s.prep:
             handle_autosetup(s, patches)
             log("Synced autosetup data...")
-            pass
         log("In case %autosetup detection fails:")
         log("")
         log(patches)
@@ -337,8 +304,6 @@ if __name__ == "__main__":
         if not args.nocommit and not args.updateonly:
             log("Committing changes...")
             commit(args, cl_entry)
-            pass
-        pass # if not args.dontpatch
 
     if not args.skip:
         log("Doing build gunk...")
@@ -348,7 +313,6 @@ if __name__ == "__main__":
         if args.bz and "rhel" in args.branch:
             cmd = "bugzilla login &&" + cmd
             cmd += " && rhpkg bugzilla --modified --fixed-in"
-            pass
         r = chroot(cmd)
         if r:
             print("Build failed!")
@@ -361,7 +325,6 @@ if __name__ == "__main__":
                 wait_gate(args.package)
                 time.sleep(30) # TODO wait on the brew tag instead
                 print('\a') # get attention because sudo has timed out
-                pass
 
             cmd = f"cd {args.packagedir} &&"
             pv = args.branch.upper()
@@ -387,8 +350,5 @@ if __name__ == "__main__":
             if r:
                 print("Failed to set errata to QE!")
                 exit(-1)
-            pass
-        pass
 
     log("Done!")
-    exit(0)

@@ -25,7 +25,6 @@ def verify(args):
     comps = args.path.split('/')
     while not comps[-1].endswith(".git"):
         del(comps[-1])
-        pass
     if len(comps) == 0:
         print("ERROR: couldn't detect project name (no projectname.git)")
         exit(1)
@@ -56,13 +55,11 @@ if __name__ == "__main__":
     ls = os.listdir(args.path)
     if "configure.ac" not in ls and "src" in ls:
         args.path += "/src"
-        pass
 
     os.chdir(args.path)
 
     if args.new:
         print(subprocess.getoutput("git clean -xdf"))
-        pass
 
     cflags = "-O0 -ggdb -fPIE -fPIC -Wl,-z,relro"
     runex("autoreconf -fiv", args.new, "configure")
@@ -71,5 +68,3 @@ if __name__ == "__main__":
           args.new, "Makefile")
     runex(f"make -sj8 >/dev/null")
     runex(f"make check")
-
-    exit(0)

@@ -30,7 +30,6 @@ class Spec:
         self.path = path
         with open(path, "r") as f:
             self.data = f.read()
-            pass
 
         # changelog macros don't matter, so pull it out first
         rest, _, self._changelog = self.data.partition("%changelog\n")
@@ -43,7 +42,6 @@ class Spec:
         if rest == "":
             # no %check section
             rest = whoops
-            pass
         rest, _, self._build = rest.rpartition("%build\n")
         rest, _, self._prep = rest.rpartition("%prep\n")
 
@@ -58,10 +56,8 @@ class Spec:
             startind = self.data.index(patches[0])
             endind = self.data.index(patches[-1]) + len(patches[-1])
             self._patches = self.data[startind:endind]
-            pass
         else:
             self._patches = None
-            pass
         plist = [re.search(r"^Patch(\d+):\s*(.*)$", p).groups()
                  for p in patches]
         self.patches = [(int(k), v) for (k, v) in plist]
@@ -107,21 +103,15 @@ class Spec:
         self.patches.sort()
         for (k, v) in self.patches:
             new_patches += "Patch%d: %s\n" % (k, v)
-            pass
         if self._patches:
             self.data = self.data.replace(self._patches + "\n", new_patches)
-            pass
         else:
             # This isn't exactly great
             print("\nYou need to add the patches section yourself:")
             print(new_patches)
             failed = True
-            pass
         self._patches = new_patches
 
         with open(self.path, "w") as f:
             f.write(self.data)
-            pass
         return failed
-
-    pass # class Spec

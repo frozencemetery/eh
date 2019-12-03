@@ -54,7 +54,6 @@ def wait_rpmdiff(pkg):
         time.sleep(1)
         j = _get_json(pkg, "rpmdiff.job.completed")
         cur_id = j["raw_messages"][0]["headers"]["run_id"]
-        pass
 
     status = j["raw_messages"][0]["msg"]["overall_score"]
     if status in ["Passed", "Info"]:
@@ -73,7 +72,6 @@ def wait_rpmdiff(pkg):
         time.sleep(1)
         j = _get_json(pkg, "rpmdiff.job.waived")
         this_id = j["raw_messages"][0]["headers"]["run_id"]
-        pass
     return
 
 def _get_cov(pkg):
@@ -115,7 +113,7 @@ def wait_covscan(pkg):
         status, _ = _get_cov(pkg)
         if status in ["PASSED", "WAIVED", "BUG_CONFIRMED"]:
             break
-        continue
+
     print("covscan complete!")
     return
 
@@ -140,11 +138,9 @@ if __name__ == "__main__":
 
     if args.gate:
         wait_gate(args.pkg)
-        pass
 
     if args.rpmdiff:
         wait_rpmdiff(args.pkg)
-        pass
 
     if args.covscan:
         wait_covscan(args.pkg)

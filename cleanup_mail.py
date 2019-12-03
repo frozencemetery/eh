@@ -19,10 +19,9 @@ def unesc(s):
             # order matters here
             del(sl[i + 2])
             del(sl[i + 1])
-            pass
 
         i += 1
-        pass
+
     return ''.join(sl)
 
 s = sys.stdin.read()

@@ -10,7 +10,6 @@ import sys
 def chroot(cmd=None, user=None):
     if not user:
         user = os.getuid()
-        pass
 
     home = os.getenv("HOME")
     if not home:
@@ -22,7 +21,6 @@ def chroot(cmd=None, user=None):
         fcntl.lockf(lockfile, fcntl.LOCK_EX)
         lockfile.write(f"{os.getpid()}\n")
         lockfile.flush()
-        pass
     except Exception:
         print(f"Already locked by {lockfile.read()}")
         exit(-1)
@@ -36,16 +34,14 @@ def chroot(cmd=None, user=None):
             f"mount --bind /dev/pts {home}/fedora/dev/pts",
             f"mount --bind /dev/shm {home}/fedora/dev/shm",
         ]
-        pass
     fcntl.lockf(lockfile, fcntl.LOCK_UN)
 
     if not cmd:
         cmd = ""
-        pass
     else:
         if type(cmd) != str and type(cmd) != bytes:
             cmd = " ".join(cmd)
-            pass
+
         cmd = "sh -c " + shlex.quote(cmd)
         pass
     chroot = f"exec chroot --userspec={user}:{user} {home}/fedora/ {cmd}"

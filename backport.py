@@ -36,10 +36,8 @@ if __name__ == "__main__":
 
     if branch.startswith("rhel-"):
         dist = "rhel"
-        pass
     elif branch.startswith("f"):
         dist = "fedora"
-        pass
     elif branch == "rawhide":
         dist = "fedora"
         branch = "master"
@@ -55,7 +53,6 @@ if __name__ == "__main__":
     branches.reverse()
     if branch != "master":
         branches.remove("master")
-        pass
     if args.to not in branches:
         print("Yo, fix your branches", file=sys.stderr)
         exit(-1)
@@ -69,7 +66,6 @@ if __name__ == "__main__":
         os.chdir(b)
         run_hard("git merge --ff-only %s" % branch)
         os.chdir("..")
-        pass
 
     for b in branches:
         if b >= branch:
@@ -80,5 +76,3 @@ if __name__ == "__main__":
         p = "rhpkg" if dist == "rhel" else "fedpkg"
         cmd = f"cd {pkg_repo_base}/{b} && {p} push && {p} build --nowait"
         chroot(os.getuid(), cmd)
-        pass
-    pass
