@@ -130,7 +130,7 @@ def apply_patches(s, incoming_patches):
 
         # patch is new - set nextind to next smallest unused
         if len(patches_old) != 0:
-            nextind = 1 + max([k for (k, _) in patches_res])
+            nextind = 1 + max([k for (k, _) in patches_res] + [0])
             pass
         patches_res.append((nextind, p))
         nextind += 1
