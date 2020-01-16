@@ -15,7 +15,7 @@ import git
 from git import Repo
 
 from delay import wait_gate, wait_rpmdiff, wait_covscan
-from enter_fedora import chroot
+from fedora import chroot
 from spec_parse import Spec
 
 def verify(args):

@@ -7,7 +7,7 @@ import sys
 
 from distutils.version import LooseVersion
 
-from enter_fedora import chroot
+from fedora import chroot
 
 def run_hard(s):
     try:

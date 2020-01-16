@@ -30,7 +30,7 @@ Descheduling interface for message bus events.
 
 Move trees around to build backports, much like make_patches.py
 
-** enter_fedora
+** fedora
 
 Wrangler script/library for entering and exiting a (Fedora) chroot.
 
