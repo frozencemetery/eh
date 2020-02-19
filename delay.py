@@ -94,7 +94,7 @@ def wait_covscan(pkg):
 
     while True:
         status, url = _get_cov(pkg)
-        if status in ["BASE_SCANNING", "SCANNING"]:
+        if status in ["BASE_SCANNING", "SCANNING", "QUEUED"]:
             continue
         elif status == "PASSED":
             print("Passed covscan!  Something must be very wrong...")
