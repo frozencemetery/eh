@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 # in the pipeline at any time.  I may have to correct this later, but let's
 # not let the perfect be the enemy of the good here.
 
+# sessions enable keepalive
+s = requests.Session()
+
 def _get_json(package, topic):
     params = {
         "package": package,
@@ -18,7 +21,7 @@ def _get_json(package, topic):
         "rows_per_page": "1",
     }
     url = "https://datagrepper.engineering.redhat.com/raw"
-    r = requests.get(url, params=params)
+    r = s.get(url, params=params)
     if r.status_code != 200:
         print(f"Problematic datagrepper request: got a {r.status_code}")
         exit(-1)
@@ -76,7 +79,7 @@ def wait_rpmdiff(pkg):
 
 def _get_cov(pkg):
     base = "https://cov01.lab.eng.brq.redhat.com"
-    r = requests.get(f"{base}/covscanhub/waiving?search={pkg}")
+    r = s.get(f"{base}/covscanhub/waiving?search={pkg}")
     if r.status_code != 200:
         print(f"Problematic covscan request: got a {r.status_code}")
         exit(-1)
