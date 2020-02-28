@@ -11,14 +11,20 @@ import sys
 import tempfile
 import time
 
-import git
+import git # type: ignore
 from git import Repo
 
 from delay import wait_gate, wait_rpmdiff, wait_covscan
 from fedora import chroot
 from spec_parse import Spec
 
-def verify(args):
+from typing import Callable, List, Tuple
+
+Patchset = List[Tuple[int, str]]
+
+log: Callable[[str], None]
+
+def verify(args: argparse.Namespace) -> argparse.Namespace:
     r = Repo(".")
     args.srcrepo = r
 
@@ -42,7 +48,7 @@ def verify(args):
         cwd += ".rhel"
     else:
         cwd += ".fedora"
-    args.packagedir = os.sep.join([os.getenv("HOME"), cwd, args.branch])
+    args.packagedir = os.sep.join([str(os.getenv("HOME")), cwd, args.branch])
     args.packagerepo = Repo(args.packagedir)
     args.package = args.packagedir.split("/")[-2].split(".")[0]
 
@@ -55,7 +61,9 @@ def verify(args):
         log = lambda s: None
 
     if args.bz:
-        args.bz = re.search("[0-9]+", args.bz).group(0)
+        m = re.search("[0-9]+", args.bz)
+        assert(m)
+        args.bz = m.group(0)
         if "rhel" not in args.branch:
             print("WARN: Fedora doesn't support bugzilla manipulation",
                   file=sys.stderr)
@@ -77,7 +85,7 @@ def verify(args):
 
     return args
 
-def produce_patches(args):
+def produce_patches(args: argparse.Namespace) -> List[str]:
     os.chdir(args.srcrepo.working_dir)
     for p in glob.glob("*.patch"):
         os.remove(p)
@@ -106,7 +114,7 @@ def produce_patches(args):
             f.write(d)
     return incoming_patches
 
-def apply_patches(s, incoming_patches):
+def apply_patches(s: Spec, incoming_patches: List[str]) -> Patchset:
     patches_old = []
     for (k, v) in s.patches:
         if v in incoming_patches:
@@ -145,7 +153,7 @@ def apply_patches(s, incoming_patches):
     s.patches = patches_res
     return patches_res
 
-def get_msg(args):
+def get_msg(args: argparse.Namespace) -> str:
     # this needs GitPython >= 1.7 in order to be nice
     msg = "- " + str(args.srcrepo.git.log("HEAD~1..").split("\n")[4].strip())
     if args.bz:
@@ -168,8 +176,10 @@ def get_msg(args):
         msg += "\n"
     return msg
 
-def bookkeep(s, args):
-    release = re.match(r"Release:\s+(.*)%\{\?dist\}", s.release).group(1)
+def bookkeep(s: Spec, args: argparse.Namespace) -> str:
+    m = re.match(r"Release:\s+(.*)%\{\?dist\}", s.release)
+    assert(m)
+    release = m.group(1)
     releases = release.split(".")
     relnum = int(releases[-1]) + 1
     releases[-1] = str(relnum)
@@ -179,7 +189,9 @@ def bookkeep(s, args):
 
     msg = get_msg(args)
 
-    version = re.match(r"Version:\s+(.*)", s.version).group(1)
+    m = re.match(r"Version:\s+(.*)", s.version)
+    assert(m)
+    version = m.group(1)
     use_sep = "> - " in s.changelog[:80] # check first line
     sep = "- " if use_sep else ""
     d = time.strftime("%a %b %d %Y")
@@ -188,7 +200,7 @@ def bookkeep(s, args):
 
     return msg
 
-def handle_autosetup(s, patches):
+def handle_autosetup(s: Spec, patches: str) -> None:
     # TODO(rharwood) patches are assumed to occupy only a single block here
     # I may never care enough to fix this assumption
     nopatches = [l for l in s.prep.split("\n") if not l.startswith("%patch")]
@@ -199,7 +211,7 @@ def handle_autosetup(s, patches):
     s.prep = "\n".join(nopatches)
     return
 
-def generate_patch_section(patches_res):
+def generate_patch_section(patches_res: Patchset) -> str:
     patches = ""
     for (i, newf) in patches_res:
         patches += "%%patch%d -p%d -b .%s\n" % \
@@ -207,7 +219,7 @@ def generate_patch_section(patches_res):
     patches = patches[:-1]
     return patches
 
-def move_patches(args):
+def move_patches(args: argparse.Namespace) -> None:
     repodir = os.getcwd()
     os.chdir(args.packagedir)
 
@@ -224,7 +236,7 @@ def move_patches(args):
     pr.index.add(["*.patch"])
     return
 
-def commit(args, cl_entry):
+def commit(args: argparse.Namespace, cl_entry: str) -> None:
     cl_entry = cl_entry[2:] # remove "- " from first line
     cl_entry = cl_entry.replace("\n", "\n\n", 1) # space out the body
     cl_entry = cl_entry.replace("\n- ", "\n")

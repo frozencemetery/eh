@@ -9,11 +9,11 @@ from distutils.version import LooseVersion
 
 from fedora import chroot
 
-def run_hard(s):
+def run_hard(s: str) -> None:
     try:
         subprocess.check_output(s.split(" "))
     except subprocess.CalledProcessError:
-        print("While running $(%s) in %s" % (s, os.getcwd()),
+        print(f"While running $({s}) in {os.getcwd()}",
               file=sys.stderr)
         exit(-1)
 
@@ -75,4 +75,4 @@ if __name__ == "__main__":
 
         p = "rhpkg" if dist == "rhel" else "fedpkg"
         cmd = f"cd {pkg_repo_base}/{b} && {p} push && {p} build --nowait"
-        chroot(os.getuid(), cmd)
+        chroot(cmd, os.getuid())

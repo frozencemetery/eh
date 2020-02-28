@@ -3,9 +3,9 @@
 import re
 import sys
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup # type: ignore
 
-def unesc(s):
+def unesc(s: str) -> str:
     sl = list(s)
 
     i = 0
@@ -30,9 +30,17 @@ soup = BeautifulSoup(s, "lxml")
 href = link.attrs["href"]
 
 # The order of parameters on this link isn't fixed
-mailto = unesc(re.search(r"mailto:(.*?@.*?)\?", href).group(1))
-subject = unesc(re.search("subject=([^&]*)", href).group(1))
-body = unesc(re.search("body=([^&]*)", href).group(1))
+m = re.search(r"mailto:(.*?@.*?)\?", href)
+assert(m)
+mailto = unesc(m.group(1))
+
+m = re.search("subject=([^&]*)", href)
+assert(m)
+subject = unesc(m.group(1))
+
+m = re.search("body=([^&]*)", href)
+assert(m)
+body = unesc(m.group(1))
 
 print("From: Robbie Harwood <rharwood@redhat.com>")
 print("To: %s" % mailto)

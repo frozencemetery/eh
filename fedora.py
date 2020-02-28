@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import argparse
 import fcntl
@@ -7,7 +7,10 @@ import shlex
 import subprocess
 import sys
 
-def chroot(cmd=None, user=None):
+from typing import Optional, Union
+
+def chroot(cmd: Optional[str] = None,
+           user: Optional[Union[str, int]] = None) -> Union[str, int]:
     user = user if user else os.getuid()
 
     if not cmd:

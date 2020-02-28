@@ -4,7 +4,7 @@ import argparse
 import os
 import subprocess
 
-def runex(cmd, new=True, path="."):
+def runex(cmd: str, new: bool = True, path: str = ".") -> None:
     if not new and os.path.exists(path):
         return
 
@@ -14,7 +14,7 @@ def runex(cmd, new=True, path="."):
     except subprocess.CalledProcessError:
         exit(-1)
 
-def verify(args):
+def verify(args: argparse.Namespace) -> argparse.Namespace:
     if args.clang and args.gcc:
         print("ERROR: clang and gcc are mutually exclusive")
         exit(1)
@@ -32,7 +32,7 @@ def verify(args):
 
     return args
 
-def get_configure_flags(project):
+def get_configure_flags(project: str) -> str:
     if project == "krb5":
         return "--with-ldap"
     return ""

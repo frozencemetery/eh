@@ -5,7 +5,9 @@ import json
 import requests
 import time
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup # type: ignore
+
+from typing import Any, Tuple
 
 # This entire setup assumes that only one instance of a particular package is
 # in the pipeline at any time.  I may have to correct this later, but let's
@@ -14,7 +16,7 @@ from bs4 import BeautifulSoup
 # sessions enable keepalive
 s = requests.Session()
 
-def _get_json(package, topic):
+def _get_json(package: str, topic: str) -> Any:
     params = {
         "package": package,
         "topic": f"/topic/VirtualTopic.eng.{topic}",
@@ -28,7 +30,7 @@ def _get_json(package, topic):
 
     return json.loads(r.text)
 
-def wait_gate(pkg):
+def wait_gate(pkg: str) -> None:
     last_summary = ""
     while True:
         time.sleep(1)
@@ -47,7 +49,7 @@ def wait_gate(pkg):
     print("Passed gating (woo!)")
     return
 
-def wait_rpmdiff(pkg):
+def wait_rpmdiff(pkg: str) -> None:
     # Heuristic: it won't pass immediately.  So let's get the ID out of the
     # first message we have, and then wait for a new one.
 
@@ -77,7 +79,7 @@ def wait_rpmdiff(pkg):
         this_id = j["raw_messages"][0]["headers"]["run_id"]
     return
 
-def _get_cov(pkg):
+def _get_cov(pkg: str) -> Tuple[str, str]:
     base = "https://cov01.lab.eng.brq.redhat.com"
     r = s.get(f"{base}/covscanhub/waiving?search={pkg}")
     if r.status_code != 200:
@@ -91,7 +93,7 @@ def _get_cov(pkg):
     slug = tds[0].a["href"]
     return status, f"{base}/{slug}"
 
-def wait_covscan(pkg):
+def wait_covscan(pkg: str) -> None:
     # Heuristic: it's the latest run.  It wouldn't be too hard to get smarter
     # about this.
 
@@ -120,7 +122,7 @@ def wait_covscan(pkg):
     print("covscan complete!")
     return
 
-def verify(args):
+def verify(args: argparse.Namespace) -> argparse.Namespace:
     if not args.pkg:
         print("Need to specify a single package!")
         exit(1)

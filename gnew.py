@@ -4,7 +4,7 @@ import argparse
 import os
 import subprocess
 
-def verify(args):
+def verify(args: argparse.Namespace) -> argparse.Namespace:
     if "/" not in args.name:
         print("Malformed name!  Should be: org/proj")
         exit(1)
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args = verify(args)
 
-    os.chdir(os.getenv("HOME"))
+    os.chdir(str(os.getenv("HOME")))
 
     gitdir = f"{args.proj}.git"
     os.mkdir(gitdir)

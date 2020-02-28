@@ -15,6 +15,8 @@
 
 import re
 
+from typing import List, Optional, Sequence
+
 # Do not assume a field not being present here means it is not in the spec
 # file.  We do not parse out everything.
 #
@@ -26,7 +28,9 @@ import re
 #  - patches (not synced with prep)
 #  - version
 class Spec:
-    def __init__(self, path):
+    _patches: Optional[str]
+
+    def __init__(self, path: str) -> None:
         self.path = path
         with open(path, "r") as f:
             self.data = f.read()
@@ -47,8 +51,12 @@ class Spec:
 
         # tosses out all descriptions and stuff
         rest, _, _ = rest.rpartition("%description")
-        self._release = re.search("\n(Release:\\s*.*)\n", rest).group(1)
-        self._version = re.search("\n(Version:\\s*.*)\n", rest).group(1)
+        m = re.search("\n(Release:\\s*.*)\n", rest)
+        assert(m)
+        self._release = m.group(1)
+        m = re.search("\n(Version:\\s*.*)\n", rest)
+        assert(m)
+        self._version = m.group(1)
 
         # keep track of numbering and such here
         patches = re.findall(r"Patch\d+:\s*[a-zA-Z0-9_.-]+", rest)
@@ -58,8 +66,11 @@ class Spec:
             self._patches = self.data[startind:endind]
         else:
             self._patches = None
-        plist = [re.search(r"^Patch(\d+):\s*(.*)$", p).groups()
-                 for p in patches]
+        plist: List[Sequence[str]] = []
+        for p in patches:
+            m = re.search(r"^Patch(\d+):\s*(.*)$", p)
+            assert(m)
+            plist.append(m.groups())
         self.patches = [(int(k), v) for (k, v) in plist]
         self.patches.sort()
 
@@ -76,7 +87,7 @@ class Spec:
         return
 
     # Will not delete any fields.
-    def sync_to_file(self):
+    def sync_to_file(self) -> bool:
         failed = False
 
         self.data = self.data.replace("%changelog\n" + self._changelog,
