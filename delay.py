@@ -23,10 +23,16 @@ def _get_json(package: str, topic: str) -> Any:
         "rows_per_page": "1",
     }
     url = "https://datagrepper.engineering.redhat.com/raw"
-    r = s.get(url, params=params)
-    if r.status_code != 200:
-        print(f"Problematic datagrepper request: got a {r.status_code}")
-        exit(-1)
+
+    while True:
+        r = s.get(url, params=params)
+        if r.status_code == 502:
+            print("502 from datagrepper; retrying...")
+            continue
+        elif r.status_code != 200:
+            print(f"Problematic datagrepper request: got a {r.status_code}")
+            exit(-1)
+        break
 
     return json.loads(r.text)
 
