@@ -83,6 +83,8 @@ def wait_rpmdiff(pkg: str) -> None:
         time.sleep(1)
         j = _get_json(pkg, "rpmdiff.job.waived")
         this_id = j["raw_messages"][0]["headers"]["run_id"]
+
+    print("Passed rpmdiff after waiver.  Somehow.")
     return
 
 def _get_cov(pkg: str) -> Tuple[str, str]:
