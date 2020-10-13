@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # Some people think it's a great idea to abuse their ProvenPackager status
     # to touch things that are better left alone.  They could not be more
     # wrong.  I hate this.
-    args.packagerepo.git.pull()
+    args.packagerepo.git.pull("--autostash")
 
     s = Spec(glob.glob(args.packagedir + "/*.spec")[0])
     log("Spec file parsed...")
