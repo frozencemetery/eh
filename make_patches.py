@@ -317,11 +317,18 @@ if __name__ == "__main__":
             log("Committing changes...")
             commit(args, cl_entry)
 
+    log("Checking SRPM generation...")
+    pkg = "rhpkg" if "rhel" in args.branch else "fedpkg"
+    cmd = f"cd {args.packagedir} && {pkg} prep"
+    r = chroot(cmd)
+    if r:
+        print("SRPM generation failed!")
+        exit(-1)
+
     if not args.skip:
         log("Doing build gunk...")
         pkg = "rhpkg" if "rhel" in args.branch else "fedpkg"
-        cmd = "cd %s && %s prep && %s push && %s build" % \
-              (args.packagedir, pkg, pkg, pkg)
+        cmd = f"cd {args.packagedir} && {pkg} push && {pkg} build"
         if args.bz and "rhel" in args.branch:
             cmd = "bugzilla login &&" + cmd
             cmd += " && rhpkg bugzilla --modified --fixed-in"
