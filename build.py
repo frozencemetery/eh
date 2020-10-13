@@ -66,5 +66,5 @@ if __name__ == "__main__":
     runex(f"./configure CC=$(which {args.c_compiler}) "
           f"CFLAGS='{cflags}' {get_configure_flags(args.project)}",
           args.new, "Makefile")
-    runex(f"make -sj8 >/dev/null")
-    runex(f"make check")
+    runex("make -sj8 >/dev/null")
+    runex("make check")
