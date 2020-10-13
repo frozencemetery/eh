@@ -15,6 +15,7 @@ import git # type: ignore
 from git import Repo
 
 from delay import wait_gate, wait_rpmdiff, wait_covscan
+from errata import Erratum
 from fedora import chroot
 from spec_parse import Spec
 
@@ -337,37 +338,25 @@ if __name__ == "__main__":
             print("Build failed!")
             exit(-1)
 
-        if args.bz and "rhel" in args.branch and args.errata:
+        if args.bz and "rhel" in args.branch:
+            # check for gating
             d = args.branch[5:6]
             if int(d) >= 8:
                 time.sleep(120) # datagrepper is *really* slow
                 wait_gate(args.package)
                 time.sleep(30) # TODO wait on the brew tag instead
-                print('\a') # get attention because sudo has timed out
 
-            cmd = f"cd {args.packagedir} &&"
-            pv = args.branch.upper()
+            pv = args.branch.upper() + ".GA"
             vr = cl_entry.split(' ')[-1]
             nvr = f"{args.package}-{vr}.el{d}"
 
-            rce = f"rhpkg errata --erratum {args.errata}"
-            cmd += f"{rce} new-state new-files ; "
-            cmd += f"{rce} add-bugs --bug {args.bz} && "
-            cmd += f"{rce} add-builds --product-version {pv} {nvr}"
-
-            r = chroot(cmd)
-            if r:
-                print("Errata manipulation failed!")
-                exit(-1)
+            e = Erratum(args.package, pv, args.bz)
+            e.set_state("NEW_FILES")
+            e.add_build(pv, nvr)
 
             wait_rpmdiff(args.package)
             wait_covscan(args.package)
-            print('\a') # get attention in case sudo has timed out
 
-            cmd = f"cd {args.args.packagedir} && {rce} new-state qe"
-            r = chroot(cmd)
-            if r:
-                print("Failed to set errata to QE!")
-                exit(-1)
+            e.set_state("QE")
 
     log("Done!")
