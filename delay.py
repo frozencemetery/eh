@@ -41,19 +41,26 @@ def wait_gate(pkg: str) -> None:
     while True:
         time.sleep(1)
         j = _get_json(pkg, "greenwave.decision.update")
+        sid = j["raw_messages"][0]["msg"]["subject_identifier"]
         summary = j["raw_messages"][0]["msg"]["summary"]
         if summary == "All required tests passed":
+            print("Passed gating (woo!)")
             break
         elif "failed" in summary:
-            print(f"Died in gating: {summary}")
-            exit(-1)
-        elif summary != last_summary:
+            print(f"Died in gating: {summary}\a")
+            break
+        if summary != last_summary:
             last_summary = summary
             print(f"Gating status update: {summary}")
-        continue
 
-    print("Passed gating (woo!)")
-    return
+    print("Waiting for tag...")
+    nvr = ""
+    while nvr != sid:
+        time.sleep(1)
+        j = _get_json(pkg, "brew.build.tag")
+        nvr = j["raw_messages"][0]["msg"]["build"]["nvr"]
+
+    print("Congratulations, you beat gating!")
 
 def wait_rpmdiff(pkg: str) -> None:
     # Heuristic: it won't pass immediately.  So let's get the ID out of the

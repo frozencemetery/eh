@@ -344,7 +344,6 @@ if __name__ == "__main__":
             if int(d) >= 8:
                 time.sleep(120) # datagrepper is *really* slow
                 wait_gate(args.package)
-                time.sleep(30) # TODO wait on the brew tag instead
 
             pv = args.branch.upper() + ".GA"
             vr = cl_entry.split(' ')[-1]
