@@ -342,7 +342,6 @@ if __name__ == "__main__":
             # check for gating
             d = args.branch[5:6]
             if int(d) >= 8:
-                time.sleep(120) # datagrepper is *really* slow
                 wait_gate(args.package)
 
             pv = args.branch.upper() + ".GA"

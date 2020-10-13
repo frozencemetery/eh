@@ -3,7 +3,6 @@
 import argparse
 import json
 import requests
-import time
 
 from bs4 import BeautifulSoup # type: ignore
 
@@ -39,7 +38,6 @@ def _get_json(package: str, topic: str) -> Any:
 def wait_gate(pkg: str) -> None:
     last_summary = ""
     while True:
-        time.sleep(1)
         j = _get_json(pkg, "greenwave.decision.update")
         sid = j["raw_messages"][0]["msg"]["subject_identifier"]
         summary = j["raw_messages"][0]["msg"]["summary"]
@@ -56,7 +54,6 @@ def wait_gate(pkg: str) -> None:
     print("Waiting for tag...")
     nvr = ""
     while nvr != sid:
-        time.sleep(1)
         j = _get_json(pkg, "brew.build.tag")
         nvr = j["raw_messages"][0]["msg"]["build"]["nvr"]
 
@@ -69,7 +66,6 @@ def wait_rpmdiff(pkg: str) -> None:
     j = _get_json(pkg, "rpmdiff.job.completed")
     prev_id = cur_id = j["raw_messages"][0]["headers"]["run_id"]
     while prev_id == cur_id:
-        time.sleep(1)
         j = _get_json(pkg, "rpmdiff.job.completed")
         cur_id = j["raw_messages"][0]["headers"]["run_id"]
 
@@ -87,7 +83,6 @@ def wait_rpmdiff(pkg: str) -> None:
     # Now wait for it to get waived
     this_id = ""
     while cur_id != this_id:
-        time.sleep(1)
         j = _get_json(pkg, "rpmdiff.job.waived")
         this_id = j["raw_messages"][0]["headers"]["run_id"]
 
