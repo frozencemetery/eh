@@ -40,6 +40,7 @@ def wait_gate(pkg: str) -> None:
     while True:
         j = _get_json(pkg, "greenwave.decision.update")
         sid = j["raw_messages"][0]["msg"]["subject_identifier"]
+        print(f"sid: {sid}")
         summary = j["raw_messages"][0]["msg"]["summary"]
         if summary == "All required tests passed":
             print("Passed gating (woo!)")
@@ -55,6 +56,9 @@ def wait_gate(pkg: str) -> None:
     nvr = ""
     while nvr != sid:
         j = _get_json(pkg, "brew.build.tag")
+        tag = j["raw_messages"][0]["headers"]["tag"]
+        if not tag.endswith("-candidate"):
+            continue
         nvr = j["raw_messages"][0]["msg"]["build"]["nvr"]
 
     print("Congratulations, you beat gating!")
