@@ -1,5 +1,13 @@
+#!/usr/bin/env python3
+
+# for requests_gssapi
+import os
+import sys
+
 import json
+import re
 import requests
+
 
 from requests_gssapi import HTTPSPNEGOAuth # type: ignore
 
@@ -47,6 +55,7 @@ class Erratum:
         print("Adding bug...")
         return post(f"api/v1/erratum/{self.eid}/add_bug", {"bug": bz})
 
+    # We might be able to forgo pv here with some caching
     def add_build(self, pv: str, nvr: str) -> Optional[Any]:
         print("Adding build...")
         payload = {
@@ -60,15 +69,21 @@ class Erratum:
         return post(f"api/v1/erratum/{self.eid}/change_state",
                     {"new_state": state})
 
-    def __init__(self, component: str, release: str, bz: str) -> None:
+    def __init__(self, component: str, release: str,
+                 bz: Optional[str] = None) -> None:
         print("Looking for errata...")
 
         leid = find_errata(component, release)
         if leid:
             self.eid = leid
             print(f"Has errata {self.eid}")
-            self.add_bug(bz)
-            return
+            if not bz:
+                return
+            return self.add_bug(bz)
+
+        if not bz:
+            print("Bugzilla needed to create errata!")
+            exit(1)
 
         adv = {
             "advisory": {
@@ -87,9 +102,44 @@ class Erratum:
             "release": release,
         }
         res = post("api/v1/erratum/", adv)
-        print(res)
+        assert(not res)
         leid = find_errata(component, release)
         assert(leid)
         self.eid = leid
         print(f"Has errata {self.eid}")
         return
+
+def usage(name: str) -> int:
+    print(f"Usage: {name} PKG in RELEASE add_bug BZ\n"
+          f"  or:  {name} PKG in RELEASE add_build NVR\n"
+          f"  or:  {name} PKG in RELEASE set_state STATE")
+    return 1
+
+if __name__ == "__main__":
+    try:
+        name = sys.argv[0]
+        pkg = sys.argv[1]
+        if sys.argv[2] != "in":
+            exit(usage(name))
+
+        m = re.search(r"\d.\d", sys.argv[3])
+        if not m:
+            exit(usage(name))
+        release = f"RHEL-{m.group(0)}.0.GA"
+
+        verb = sys.argv[4]
+        arg = sys.argv[5]
+    except IndexError:
+        exit(usage(name))
+
+    if verb == "add_bug":
+        e = Erratum(pkg, release, arg)
+        exit(not e)
+    elif verb == "add_build":
+        e = Erratum(pkg, release)
+        exit(e.add_build(release, arg))
+    elif verb == "set_state":
+        e = Erratum(pkg, release)
+        exit(e.set_state(arg))
+    else:
+        exit(usage(name))

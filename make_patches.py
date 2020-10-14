@@ -349,12 +349,12 @@ if __name__ == "__main__":
             nvr = f"{args.package}-{vr}.el{d}"
 
             e = Erratum(args.package, pv, args.bz)
-            e.set_state("NEW_FILES")
-            e.add_build(pv, nvr)
+            assert(not e.set_state("NEW_FILES"))
+            assert(not e.add_build(pv, nvr))
 
             wait_rpmdiff(args.package)
             wait_covscan(args.package)
 
-            e.set_state("QE")
+            assert(not e.set_state("QE"))
 
     log("Done!")
