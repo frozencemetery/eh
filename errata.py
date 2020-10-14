@@ -51,12 +51,14 @@ def find_errata(component: str, release: str) -> Optional[str]:
 class Erratum:
     eid: str
 
-    def add_bug(self, bz: str) -> Optional[Any]:
-        print("Adding bug...")
-        return post(f"api/v1/erratum/{self.eid}/add_bug", {"bug": bz})
+    def set_state(self, state: str) -> Optional[Any]:
+        print(f"Setting state to {state}")
+        return post(f"api/v1/erratum/{self.eid}/change_state",
+                    {"new_state": state})
 
     # We might be able to forgo pv here with some caching
     def add_build(self, pv: str, nvr: str) -> Optional[Any]:
+        assert(not self.set_state("NEW_FILES"))
         print("Adding build...")
         payload = {
             "product_version": pv,
@@ -64,10 +66,11 @@ class Erratum:
         }
         return post(f"api/v1/erratum/{self.eid}/add_build", payload)
 
-    def set_state(self, state: str) -> Optional[Any]:
-        print(f"Setting state to {state}")
-        return post(f"api/v1/erratum/{self.eid}/change_state",
-                    {"new_state": state})
+    # We might be able to determine errata state in advance here
+    def add_bug(self, bz: str) -> Optional[Any]:
+        assert(not self.set_state("NEW_FILES"))
+        print("Adding bug...")
+        return post(f"api/v1/erratum/{self.eid}/add_bug", {"bug": bz})
 
     def __init__(self, component: str, release: str,
                  bz: Optional[str] = None) -> None:
