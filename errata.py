@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
-# for requests_gssapi
-import os
-import sys
-
 import json
 import re
 import requests
-
+import sys
 
 from requests_gssapi import HTTPSPNEGOAuth # type: ignore
 
@@ -58,7 +54,7 @@ class Erratum:
 
     # We might be able to forgo pv here with some caching
     def add_build(self, pv: str, nvr: str) -> Optional[Any]:
-        assert(not self.set_state("NEW_FILES"))
+        self.set_state("NEW_FILES") # self-transition will fail
         print("Adding build...")
         payload = {
             "product_version": pv,
@@ -68,7 +64,7 @@ class Erratum:
 
     # We might be able to determine errata state in advance here
     def add_bug(self, bz: str) -> Optional[Any]:
-        assert(not self.set_state("NEW_FILES"))
+        self.set_state("NEW_FILES") # self-transition will fail
         print("Adding bug...")
         return post(f"api/v1/erratum/{self.eid}/add_bug", {"bug": bz})
 

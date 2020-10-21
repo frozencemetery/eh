@@ -344,16 +344,16 @@ if __name__ == "__main__":
             if int(d) >= 8:
                 wait_gate(args.package)
 
-            pv = args.branch.upper() + ".GA"
-            vr = cl_entry.split(' ')[-1]
-            nvr = f"{args.package}-{vr}.el{d}"
+            # pv = args.branch.upper() + ".GA"
+            # vr = cl_entry.split(' ')[-1]
+            # nvr = f"{args.package}-{vr}.el{d}"
 
-            e = Erratum(args.package, pv, args.bz)
-            assert(not e.add_build(pv, nvr))
+            # e = Erratum(args.package, pv, args.bz)
+            # assert(not e.add_build(pv, nvr))
 
-            wait_rpmdiff(args.package)
-            wait_covscan(args.package)
+            # wait_rpmdiff(args.package)
+            # wait_covscan(args.package)
 
-            assert(not e.set_state("QE"))
+            # assert(not e.set_state("QE"))
 
     log("Done!")

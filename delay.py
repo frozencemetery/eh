@@ -40,7 +40,6 @@ def wait_gate(pkg: str) -> None:
     while True:
         j = _get_json(pkg, "greenwave.decision.update")
         sid = j["raw_messages"][0]["msg"]["subject_identifier"]
-        print(f"sid: {sid}")
         summary = j["raw_messages"][0]["msg"]["summary"]
         if summary == "All required tests passed":
             print("Passed gating (woo!)")
@@ -68,7 +67,6 @@ def wait_rpmdiff(pkg: str) -> None:
     # first message we have, and then wait for a new one.
 
     j = _get_json(pkg, "rpmdiff.job.completed")
-    prev_id = cur_id = j["raw_messages"][0]["headers"]["run_id"]
     while prev_id == cur_id:
         j = _get_json(pkg, "rpmdiff.job.completed")
         cur_id = j["raw_messages"][0]["headers"]["run_id"]
