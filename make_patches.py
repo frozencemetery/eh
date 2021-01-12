@@ -15,7 +15,7 @@ import git # type: ignore
 from git import Repo
 
 from delay import wait_gate, wait_rpmdiff, wait_covscan
-from errata import Erratum
+#from errata import Erratum
 from fedora import chroot
 from spec_parse import Spec
 
@@ -178,7 +178,7 @@ def get_msg(args: argparse.Namespace) -> str:
     return msg
 
 def bookkeep(s: Spec, args: argparse.Namespace) -> str:
-    m = re.match(r"Release:\s+(.*)%\{\?dist\}", s.release)
+    m = re.match(r"Release:[^\d]*(\d+)%\{\?dist\}", s.release)
     assert(m)
     release = m.group(1)
     releases = release.split(".")
