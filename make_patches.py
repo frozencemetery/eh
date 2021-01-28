@@ -186,7 +186,9 @@ def bookkeep(s: Spec, args: argparse.Namespace) -> str:
     releases[-1] = str(relnum)
     curr = ".".join(releases)
 
+    # We want to strip out anything after dist here
     s.release = s.release.replace(release, curr, 1)
+    s.release = s.release[:s.release.index("%{?dist}") + len("%{?dist}")]
 
     msg = get_msg(args)
 
