@@ -33,8 +33,6 @@ def verify(args: argparse.Namespace) -> argparse.Namespace:
         r.heads[args.branch].checkout()
     else:
         args.branch = str(r.active_branch)
-    if args.branch == "rawhide":
-        args.branch = "master"
 
     if not args.tag:
         args.tag = r.git.describe("--abbrev=0", "--tags")
