@@ -17,7 +17,7 @@ def chroot(cmd: Optional[str] = None,
         shell = os.getenv("SHELL", "sh")
         cmd = f"{shell} -i"
     if type(cmd) not in [str, bytes]:
-        cmd = " ".join(cmd)
+        cmd = " ".join([shlex.quote(c) for c in cmd])
 
     home = os.getenv("HOME")
     if not home:
